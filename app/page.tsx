@@ -37,7 +37,7 @@ const copy = {
   }
 };
 
-const downloadUrl = "https://github.com/catanddogmiaomiao/Book2AudioGo/releases/latest";
+const downloadUrl = "https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2AudioGO-v1.0.0.zip";
 
 export default function Home() {
   const [lang, setLang] = useState<Lang>("zh");
