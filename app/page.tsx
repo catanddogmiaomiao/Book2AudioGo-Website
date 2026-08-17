@@ -2,9 +2,20 @@
 
 import { useEffect, useState } from "react";
 
-type Lang = "zh" | "ja" | "ko";
+type Lang = "en" | "ja" | "zh" | "ko";
 
 const copy = {
+  en: {
+    nav: ["Features", "How it works", "Formats"], free: "Free to use", eyebrow: "Take your reading wherever you go",
+    title: "Give every book\na voice of its own.", intro: "Book2Audio GO turns your ebooks into natural, easy-to-listen-to audiobooks.\nKeep reading during your commute, while driving, walking, working out, or whenever your eyes need a break from the screen.",
+    download: "Download free for Windows", note: "Free to use · Windows 10/11 · No sign-up required",
+    formats: "Turn time when you cannot read\ninto time spent reading.", formatsBody: "The ebooks saved on your computer or in the cloud do not have to sit unread.\nConvert them to MP3 or WAV and keep reading while commuting, driving, walking, or taking a break.\nSupports common formats including EPUB, TXT, PDF, and DOCX, while preserving chapter structure automatically.",
+    value: "Sometimes it is not that you do not want to read—you simply cannot look at a book or screen.\nYou do not have to wait for a platform to release the audiobook you want. The ebooks you already own can become your own audiobooks.",
+    cards: [["Automatic chapter detection","Automatically parses the table of contents so you can preview, select, and export chapters individually."],["Natural multilingual voices","Supports Chinese, Japanese, Korean, and English voices, with freely adjustable speaking speed."],["Complete audiobook metadata","Automatically adds the title, author, year, genre, and cover so your audiobooks stay organized."],["Built for long-form reading","Automatic splitting, retry on failure, and progress tracking make full-book conversion more reliable."]],
+    how: "Three steps from ebook to audiobook.", steps: [["01","Choose a book","Open an EPUB, TXT, PDF, or DOCX file."],["02","Choose chapters and a voice","Preview the text, then select the chapters, voice, and speaking speed you want."],["03","Export and listen","Create an MP3 or WAV file and play it on your phone, computer, or favorite audio player."]],
+    cta: "Your ebook\nis your audiobook.", ctaBody: "Stop searching to see whether an audiobook version exists.\nTurn the ebooks you already own into audio and keep reading whenever it suits you.",
+    footer: "Set words free, and read without being limited by time or screens.", privacy: "Your ebook content is processed on your computer; speech synthesis requires an internet connection."
+  },
   zh: {
     nav: ["功能", "使用方法", "支持格式"], free: "现已免费", eyebrow: "把阅读带进每一段路程",
     title: "让每一本书，\n都有自己的声音。", intro: "Book2Audio GO 将你的电子书转换成自然流畅的有声书。\n通勤、开车、散步、运动，或者眼睛疲劳不想继续看屏幕时，也可以继续读自己的书。",
@@ -43,11 +54,11 @@ const copy = {
 const downloadUrl = "https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2AudioGO-v1.0.0.zip";
 
 export default function Home() {
-  const [lang, setLang] = useState<Lang>("zh");
-  useEffect(() => { const l = navigator.language.toLowerCase(); if (l.startsWith("ja")) setLang("ja"); else if (l.startsWith("ko")) setLang("ko"); }, []);
+  const [lang, setLang] = useState<Lang>("en");
+  useEffect(() => { const l = navigator.language.toLowerCase(); if (l.startsWith("ja")) setLang("ja"); else if (l.startsWith("zh")) setLang("zh"); else if (l.startsWith("ko")) setLang("ko"); }, []);
   const t = copy[lang];
   return <main>
-    <nav className="nav wrap"><a className="brand" href="#top"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="navlinks">{t.nav.map((n,i)=><a key={n} href={["#features","#how","#formats"][i]}>{n}</a>)}</div><div className="language" aria-label="Language">{(["zh","ja","ko"] as Lang[]).map(l=><button className={lang===l?"active":""} onClick={()=>setLang(l)} key={l}>{l.toUpperCase()}</button>)}</div></nav>
+    <nav className="nav wrap"><a className="brand" href="#top"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="navlinks">{t.nav.map((n,i)=><a key={n} href={["#features","#how","#formats"][i]}>{n}</a>)}</div><div className="language" aria-label="Language">{(["en","ja","zh","ko"] as Lang[]).map(l=><button className={lang===l?"active":""} onClick={()=>setLang(l)} key={l}>{l.toUpperCase()}</button>)}</div></nav>
     <section className="hero wrap" id="top"><div className="heroCopy"><div className="pill"><span></span>{t.free}</div><p className="eyebrow">{t.eyebrow}</p><h1>{t.title}</h1><p className="lead">{t.intro}</p><div className="actions"><a className="primary" href={downloadUrl}>▣&nbsp; {t.download}</a></div><p className="note">✓ {t.note}</p></div><div className="heroVisual" aria-hidden="true"><div className="orb one"></div><div className="orb two"></div><div className="book"><div className="bookTop"><span>BOOK 2 AUDIO</span><b>GO</b></div><div className="sound"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div className="bookTitle">THE<br/>LISTENING<br/>LIBRARY</div><div className="bookFoot"><span>EPUB · PDF · DOCX</span><strong>▶</strong></div></div><div className="miniPlayer"><button>▶</button><div><b>Chapter 03</b><span>Every story deserves a voice</span><em><i></i></em></div><small>12:48</small></div></div></section>
     <section className="formats" id="formats"><div className="wrap"><div className="formatRow"><span>EPUB</span><i>→</i><span>TXT</span><i>→</i><span>PDF</span><i>→</i><span>DOCX</span><b>MP3 / WAV</b></div><div className="sectionIntro"><p>BOOK → VOICE</p><h2>{t.formats}</h2><span style={{display:"block", whiteSpace:"pre-line"}}>{t.formatsBody}</span><span style={{display:"block", whiteSpace:"pre-line", marginTop:20, color:"var(--ink)", fontWeight:600}}>{t.value}</span></div><div className="cards" id="features">{t.cards.map((c,i)=><article key={c[0]}><div className={`icon icon${i}`}>{["≡","⌁","✦","↗"][i]}</div><h3>{c[0]}</h3><p>{c[1]}</p></article>)}</div></div></section>
     <section className="how wrap" id="how"><div className="sectionIntro dark"><p>HOW IT WORKS</p><h2>{t.how}</h2></div><div className="steps">{t.steps.map((s,i)=><article key={s[0]}><span>{s[0]}</span><div className="stepPic">{i===0?<><b>EPUB</b><i>＋</i></>:i===1?<><div className="wave">▂▄▆█▅▃▇▄</div><i>●</i></>:<><b>MP3</b><i>✓</i></>}</div><h3>{s[1]}</h3><p>{s[2]}</p></article>)}</div></section>
@@ -55,4 +66,5 @@ export default function Home() {
     <footer className="wrap"><div className="brand"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></div><p>{t.footer}<br/><small>{t.privacy}</small></p></footer>
   </main>;
 }
+
 
