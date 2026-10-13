@@ -7,9 +7,9 @@ type Lang = "en" | "ja" | "zh" | "ko";
 const copy = {
   en: {
     nav: ["Features", "How it works", "Formats"], free: "Free to use", eyebrow: "Take your reading wherever you go",
-    title: "Give every book\na voice of its own.", intro: "Book2Audio GO turns your ebooks into natural, easy-to-listen-to audiobooks.\nKeep reading during your commute, while driving, walking, working out, or whenever your eyes need a break from the screen.",
+    title: "Convert Ebooks to Audiobooks Easily", intro: "Turn EPUB, PDF, TXT and DOCX files into MP3 or WAV audiobooks, with chapter splitting for easy listening.\nBook2Audio GO is a free Windows ebook to audiobook converter for your commute, walks, workouts, or a break from the screen.",
     download: "Download free for Windows", note: "Free to use · Windows 10/11 · No sign-up required",
-    formats: "Turn time when you cannot read\ninto time spent reading.", formatsBody: "The ebooks saved on your computer or in the cloud do not have to sit unread.\nConvert them to MP3 or WAV and keep reading while commuting, driving, walking, or taking a break.\nSupports common formats including EPUB, TXT, PDF, and DOCX, while preserving chapter structure automatically.",
+    formats: "Turn time when you cannot read\ninto time spent reading.", formatsBody: "Convert EPUB to MP3 for listening on the go, or try PDF to audiobook conversion for a break from the screen.\nBook2Audio GO also supports TXT and DOCX, with MP3 or WAV output. Preview and select detected chapters, then export chapter-based MP3 files to keep your listening organized.",
     value: "Sometimes it is not that you do not want to read—you simply cannot look at a book or screen.\nYou do not have to wait for a platform to release the audiobook you want. The ebooks you already own can become your own audiobooks.",
     cards: [["Automatic chapter detection","Automatically parses the table of contents so you can preview, select, and export chapters individually."],["Natural multilingual voices","Supports Chinese, Japanese, Korean, and English voices, with freely adjustable speaking speed."],["Complete audiobook metadata","Automatically adds the title, author, year, genre, and cover so your audiobooks stay organized."],["Built for long-form reading","Automatic splitting, retry on failure, and progress tracking make full-book conversion more reliable."]],
     how: "Three steps from ebook to audiobook.", steps: [["01","Choose a book","Open an EPUB, TXT, PDF, or DOCX file."],["02","Choose chapters and a voice","Preview the text, then select the chapters, voice, and speaking speed you want."],["03","Export and listen","Create an MP3 or WAV file and play it on your phone, computer, or favorite audio player."]],
@@ -55,8 +55,11 @@ const downloadUrl = "https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2Au
 
 export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
-  useEffect(() => { const l = navigator.language.toLowerCase(); if (l.startsWith("ja")) setLang("ja"); else if (l.startsWith("zh")) setLang("zh"); else if (l.startsWith("ko")) setLang("ko"); }, []);
+  // Keep the canonical homepage language stable; translations remain selectable.
   const t = copy[lang];
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+  }, [lang]);
   return <main>
     <nav className="nav wrap"><a className="brand" href="#top"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="navlinks">{t.nav.map((n,i)=><a key={n} href={["#features","#how","#formats"][i]}>{n}</a>)}</div><div className="language" aria-label="Language">{(["en","ja","zh","ko"] as Lang[]).map(l=><button className={lang===l?"active":""} onClick={()=>setLang(l)} key={l}>{l.toUpperCase()}</button>)}</div></nav>
     <section className="hero wrap" id="top"><div className="heroCopy"><div className="pill"><span></span>{t.free}</div><p className="eyebrow">{t.eyebrow}</p><h1>{t.title}</h1><p className="lead">{t.intro}</p><div className="actions"><a className="primary" href={downloadUrl}>▣&nbsp; {t.download}</a></div><p className="note">✓ {t.note}</p></div><div className="heroVisual" aria-hidden="true"><div className="orb one"></div><div className="orb two"></div><div className="book"><div className="bookTop"><span>BOOK 2 AUDIO</span><b>GO</b></div><div className="sound"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div className="bookTitle">THE<br/>LISTENING<br/>LIBRARY</div><div className="bookFoot"><span>EPUB · PDF · DOCX</span><strong>▶</strong></div></div><div className="miniPlayer"><button>▶</button><div><b>Chapter 03</b><span>Every story deserves a voice</span><em><i></i></em></div><small>12:48</small></div></div></section>
