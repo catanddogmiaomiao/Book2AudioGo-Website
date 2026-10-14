@@ -3,8 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://book2audiogo.com/"),
-  title: "Book2Audio GO – Convert Ebooks to MP3 Audiobooks",
-  description: "Convert EPUB, PDF, TXT and DOCX ebooks into MP3 or WAV audiobooks. Use chapter splitting to export audio by chapter with Book2Audio GO for Windows.",
+  title: "Free PDF & EPUB to Audiobook Converter | Book2Audio GO",
+  description: "Turn PDF, EPUB, TXT and DOCX books into MP3 or WAV audiobooks on Windows. Core features are free. Preview chapters, choose a voice and export by chapter.",
+  openGraph: { title: "Free PDF & EPUB to Audiobook Converter | Book2Audio GO", description: "Download the Windows book to audio app. Core features are free: preview chapters, choose a voice and export MP3 audiobooks.", url: "https://book2audiogo.com/", siteName: "Book2Audio GO", type: "website", locale: "en_US" },
+  twitter: { card: "summary", title: "Free PDF & EPUB to Audiobook Converter | Book2Audio GO", description: "Turn your ebooks into chapter-based MP3 audiobooks with free core features on Windows." },
   alternates: { canonical: "https://book2audiogo.com/" },
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };
