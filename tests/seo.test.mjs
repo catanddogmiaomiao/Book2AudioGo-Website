@@ -19,15 +19,15 @@ try {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /<html lang="en">/);
-  assert.match(html, /<title>Book2Audio GO – Convert Ebooks to MP3 Audiobooks<\/title>/);
+  assert.match(html, /<title>Free PDF &amp; EPUB to Audiobook Converter \| Book2Audio GO<\/title>/);
   assert.equal((html.match(/<h1[\s>]/g) ?? []).length, 1);
-  assert.match(html, /<h1>Convert Ebooks to Audiobooks Easily<\/h1>/);
+  assert.match(html, /<h1>Convert PDF and EPUB\s+Books to MP3 Audiobooks<\/h1>/);
   const canonical = html.match(/<link rel="canonical" href="([^"]+)"/);
   assert.ok(canonical);
   assert.equal(new URL(canonical[1]).href, "https://book2audiogo.com/");
   const description = html.match(/<meta name="description" content="([^"]+)"/);
   assert.ok(description);
-  for (const format of ["EPUB", "PDF", "TXT", "DOCX", "MP3", "WAV", "chapter splitting"]) {
+  for (const format of ["EPUB", "PDF", "TXT", "DOCX", "MP3", "WAV", "export by chapter"]) {
     assert.ok(description[1].includes(format));
   }
   for (const keyword of ["ebook to audiobook", "EPUB to MP3", "PDF to audiobook", "chapter-based MP3"]) {
@@ -36,12 +36,31 @@ try {
   assert.match(html, /name="viewport" content="width=device-width, initial-scale=1"/);
   assert.doesNotMatch(html, /<meta[^>]+content="[^"]*noindex/i);
 
+  const pageTitles = new Set([html.match(/<title>(.*?)<\/title>/)[1]]);
+  for (const [path, heading] of [["/pdf-to-audiobook", "Convert PDF to Audio and MP3 Audiobooks"], ["/epub-to-mp3", "Convert EPUB to MP3 Audiobooks by Chapter"]]) {
+    assert.ok(html.includes(`href="${path}"`), "Homepage must link to each guide");
+    const guideResponse = await worker.dispatchFetch(`https://book2audiogo.com${path}`);
+    assert.equal(guideResponse.status, 200);
+    const guideHtml = await guideResponse.text();
+    assert.equal((guideHtml.match(/<h1[\s>]/g) ?? []).length, 1);
+    assert.ok(guideHtml.includes(`<h1>${heading}</h1>`));
+    const guideCanonical = guideHtml.match(/<link rel="canonical" href="([^"]+)"/);
+    assert.equal(new URL(guideCanonical[1]).href, `https://book2audiogo.com${path}`);
+    const title = guideHtml.match(/<title>(.*?)<\/title>/)[1];
+    assert.ok(!pageTitles.has(title), "Each page needs a distinct title");
+    pageTitles.add(title);
+    assert.ok(guideHtml.includes('href="/"'));
+    assert.ok(guideHtml.includes("Frequently asked questions"));
+    assert.doesNotMatch(guideHtml, /<meta[^>]+content="[^"]*noindex/i);
+    assert.match(guideHtml, /property="og:url"/);
+  }
+
   const sitemap = await worker.dispatchFetch("https://book2audiogo.com/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type"), /xml/);
   const xml = await sitemap.text();
   assert.match(xml, /xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9"/);
-  assert.deepEqual([...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => m[1]), ["https://book2audiogo.com/"]);
+  assert.deepEqual([...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => m[1]), ["https://book2audiogo.com/", "https://book2audiogo.com/pdf-to-audiobook", "https://book2audiogo.com/epub-to-mp3"]);
 
   const robots = await worker.dispatchFetch("https://book2audiogo.com/robots.txt");
   assert.equal(robots.status, 200);
