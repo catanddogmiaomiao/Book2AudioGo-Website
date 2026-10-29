@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import DiscoveryContent from "./_components/DiscoveryContent";
+import UpdateNotice from "./_components/UpdateNotice";
+import { DOWNLOAD_URL as downloadUrl, releaseCopy } from "./_data/releases";
 
 type Lang = "en" | "ja" | "zh" | "ko";
 
@@ -52,24 +54,29 @@ const copy = {
   }
 };
 
-const downloadUrl = "https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2AudioGO-v1.0.0.zip";
 
 export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
   // Keep the canonical homepage language stable; translations remain selectable.
   const t = copy[lang];
   useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("lang");
+    if (["en", "zh", "ja", "ko"].includes(requested ?? "")) setLang(requested as Lang);
+  }, []);
+  useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
   }, [lang]);
   return <main>
-    <nav className="nav wrap"><a className="brand" href="#top"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="navlinks">{t.nav.map((n,i)=><a key={n} href={["#features","#how","#formats"][i]}>{n}</a>)}</div><div className="language" aria-label="Language">{(["en","ja","zh","ko"] as Lang[]).map(l=><button className={lang===l?"active":""} onClick={()=>setLang(l)} key={l}>{l.toUpperCase()}</button>)}</div></nav>
+    <nav className="nav wrap"><a className="brand" href="#top"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="navlinks">{t.nav.map((n,i)=><a key={n} href={["#features","#how","#formats"][i]}>{n}</a>)}<a href={`/updates?lang=${lang}`}>{releaseCopy[lang].nav}</a></div><div className="language" aria-label="Language">{(["en","ja","zh","ko"] as Lang[]).map(l=><button className={lang===l?"active":""} onClick={()=>setLang(l)} key={l}>{l.toUpperCase()}</button>)}</div></nav>
+    <UpdateNotice lang={lang} />
     <section className="hero wrap" id="top"><div className="heroCopy"><div className="pill"><span></span>{t.free}</div><p className="eyebrow">{t.eyebrow}</p><h1>{t.title}</h1><p className="lead">{t.intro}</p><div className="actions"><a className="primary" href={downloadUrl}>▣&nbsp; {t.download}</a></div><p className="note">✓ {t.note}</p></div><div className="heroVisual" aria-hidden="true"><div className="orb one"></div><div className="orb two"></div><div className="book"><div className="bookTop"><span>BOOK 2 AUDIO</span><b>GO</b></div><div className="sound"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div className="bookTitle">THE<br/>LISTENING<br/>LIBRARY</div><div className="bookFoot"><span>EPUB · PDF · DOCX</span><strong>▶</strong></div></div><div className="miniPlayer"><button>▶</button><div><b>Chapter 03</b><span>Every story deserves a voice</span><em><i></i></em></div><small>12:48</small></div></div></section>
     <section className="formats" id="formats"><div className="wrap"><div className="formatRow"><span>EPUB</span><i>→</i><span>TXT</span><i>→</i><span>PDF</span><i>→</i><span>DOCX</span><b>MP3 / WAV</b></div><div className="sectionIntro"><p>BOOK → VOICE</p><h2>{t.formats}</h2><span style={{display:"block", whiteSpace:"pre-line"}}>{t.formatsBody}</span><span style={{display:"block", whiteSpace:"pre-line", marginTop:20, color:"var(--ink)", fontWeight:600}}>{t.value}</span></div><div className="cards" id="features">{t.cards.map((c,i)=><article key={c[0]}><div className={`icon icon${i}`}>{["≡","⌁","✦","↗"][i]}</div><h3>{c[0]}</h3><p>{c[1]}</p></article>)}</div></div></section>
     <section className="how wrap" id="how"><div className="sectionIntro dark"><p>HOW IT WORKS</p><h2>{t.how}</h2></div><div className="steps">{t.steps.map((s,i)=><article key={s[0]}><span>{s[0]}</span><div className="stepPic">{i===0?<><b>EPUB</b><i>＋</i></>:i===1?<><div className="wave">▂▄▆█▅▃▇▄</div><i>●</i></>:<><b>MP3</b><i>✓</i></>}</div><h3>{s[1]}</h3><p>{s[2]}</p></article>)}</div></section>
     {lang === "en" && <DiscoveryContent />}
     <section className="final"><div className="wrap"><div><p>BOOK2AUDIO GO</p><h2>{t.cta}</h2><span>{t.ctaBody}</span><a className="primary light" href={downloadUrl}>▣&nbsp; {t.download}</a></div><div className="disc" aria-hidden="true"><div><span>BOOK2AUDIO</span><b>GO</b></div></div></div></section>
-    <footer className="wrap"><div className="brand"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></div><p>{t.footer}<br/><small>{t.privacy}</small></p></footer>
+    <footer className="wrap"><div className="brand"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></div><p>{t.footer}<br/><small>{t.privacy}</small><a className="footerUpdateLink updateReadMore" href={`/updates?lang=${lang}`}>{releaseCopy[lang].nav}</a></p></footer>
   </main>;
 }
+
 
 
