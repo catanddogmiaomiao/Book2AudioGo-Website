@@ -1,8 +1,10 @@
 /** Cloudflare Worker entry point for the vinext site. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { feedbackRoute, type FeedbackEnv } from "./feedback";
+export { FeedbackInbox } from "./feedback";
 
-interface Env {
+interface Env extends FeedbackEnv {
   ASSETS: Fetcher;
   IMAGES: {
     input(stream: ReadableStream): {
@@ -26,6 +28,8 @@ const worker = {
       url.hostname = "book2audiogo.com";
       return Response.redirect(url.toString(), 301);
     }
+    const feedback = await feedbackRoute(request, env);
+    if (feedback) return feedback;
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {
