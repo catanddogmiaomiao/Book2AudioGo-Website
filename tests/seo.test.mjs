@@ -36,6 +36,21 @@ try {
   assert.match(html, /name="viewport" content="width=device-width, initial-scale=1"/);
   assert.doesNotMatch(html, /<meta[^>]+content="[^"]*noindex/i);
 
+  assert.match(html, /id="update-notice-title"/);
+  assert.match(html, /Older app will not open or convert audio/);
+  assert.ok(html.includes('href="/updates?lang=en"'));
+  const updatesResponse = await worker.dispatchFetch("https://book2audiogo.com/updates");
+  assert.equal(updatesResponse.status, 200);
+  const updatesHtml = await updatesResponse.text();
+  assert.equal((updatesHtml.match(/<h1[\s>]/g) ?? []).length, 1);
+  assert.ok(updatesHtml.includes("<h1>Release notes</h1>"));
+  assert.match(updatesHtml, /rel="canonical" href="https:\/\/book2audiogo.com\/updates"/);
+  for (const text of ["Reading plans and reliability update", "How to upgrade", "python312.dll", "_internal", "about 67 MB", "app is running"]) {
+    assert.ok(updatesHtml.includes(text), "Release notes missing: " + text);
+  }
+  for (const htmlPage of [html, updatesHtml]) {
+    assert.ok(htmlPage.includes('href="https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2AudioGO-v1.0.0.zip"'));
+  }
   const pageTitles = new Set([html.match(/<title>(.*?)<\/title>/)[1]]);
   for (const [path, heading] of [["/pdf-to-audiobook", "Convert PDF to Audio and MP3 Audiobooks"], ["/epub-to-mp3", "Convert EPUB to MP3 Audiobooks by Chapter"]]) {
     assert.ok(html.includes(`href="${path}"`), "Homepage must link to each guide");
@@ -60,7 +75,7 @@ try {
   assert.match(sitemap.headers.get("content-type"), /xml/);
   const xml = await sitemap.text();
   assert.match(xml, /xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9"/);
-  assert.deepEqual([...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => m[1]), ["https://book2audiogo.com/", "https://book2audiogo.com/pdf-to-audiobook", "https://book2audiogo.com/epub-to-mp3"]);
+  assert.deepEqual([...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => m[1]), ["https://book2audiogo.com/", "https://book2audiogo.com/pdf-to-audiobook", "https://book2audiogo.com/epub-to-mp3", "https://book2audiogo.com/updates"]);
 
   const robots = await worker.dispatchFetch("https://book2audiogo.com/robots.txt");
   assert.equal(robots.status, 200);
@@ -76,7 +91,8 @@ try {
   }
   const local = await worker.dispatchFetch("http://localhost/");
   assert.equal(local.status, 200);
-  console.log("SEO checks passed: rendered homepage, sitemap, robots, canonical and production redirects.");
+  console.log("Checks passed: homepage, release notes, upgrade guidance, downloads, sitemap, SEO and redirects.");
 } finally {
   await worker.dispose();
 }
+
