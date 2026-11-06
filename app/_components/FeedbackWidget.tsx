@@ -44,7 +44,7 @@ export default function FeedbackWidget() {
     try {
       const response = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
         body: JSON.stringify({ id: requestId.current, kind: data.get("kind"), message: message.trim(), email: String(data.get("email") ?? "").trim(), rating: data.get("rating") ? Number(data.get("rating")) : null, lang, page: window.location.pathname, website: data.get("website") }) });
-      const body = await response.json();
+      const body = await response.json() as { ok?: boolean; id: string };
       if (!response.ok || !body.ok) { setError(response.status === 429 ? t.limited : response.status === 400 ? t.invalid : t.error); return; }
       setReceipt(body.id.slice(0, 8)); setSuccess(true); setMessage(""); form.reset(); requestId.current = "";
     } catch { setError(t.retry); }

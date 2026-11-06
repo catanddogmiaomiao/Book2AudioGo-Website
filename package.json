@@ -6,18 +6,24 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
-    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "vinext build && node tests/seo.test.mjs && node tests/feedback.test.mjs",
+    "dev": "node scripts/local.mjs dev",
+    "build": "node scripts/local.mjs build",
+    "start": "node scripts/local.mjs start",
+    "test": "node scripts/local.mjs verify",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test:paddle": "node scripts/local.mjs paddle-test",
+    "typecheck": "node scripts/local.mjs typecheck",
+    "webhook:gateway": "node scripts/local.mjs webhook-gateway",
+    "test:webhook-gateway": "node scripts/local.mjs gateway-test"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "react-loading-skeleton": "3.5.0"
+    "react-loading-skeleton": "3.5.0",
+    "@paddle/paddle-js": "1.6.5",
+    "@paddle/paddle-node-sdk": "3.10.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",

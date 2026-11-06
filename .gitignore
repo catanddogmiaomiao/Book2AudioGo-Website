@@ -3,4 +3,9 @@ dist/
 .next/
 .wrangler/
 .env*
+!.env.example
+.dev.vars*
 *.tsbuildinfo
+
+.local/
+worker-configuration.d.ts

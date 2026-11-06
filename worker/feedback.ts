@@ -72,7 +72,7 @@ export async function feedbackRoute(request: Request, env: FeedbackEnv): Promise
 }
 
 export class FeedbackInbox extends DurableObject {
-  constructor(ctx: DurableObjectState, env: unknown) {
+  constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     ctx.storage.sql.exec(`CREATE TABLE IF NOT EXISTS feedback (id TEXT PRIMARY KEY, kind TEXT NOT NULL, message TEXT NOT NULL, email TEXT NOT NULL, lang TEXT NOT NULL, page TEXT NOT NULL, rating INTEGER, created TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new');
       CREATE TABLE IF NOT EXISTS limits (client TEXT PRIMARY KEY, last INTEGER NOT NULL, count INTEGER NOT NULL);`);

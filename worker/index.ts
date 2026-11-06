@@ -2,9 +2,11 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { feedbackRoute, type FeedbackEnv } from "./feedback";
+import { paddleRoute, sandboxEnabled, type PaddleEnv } from "./paddle";
 export { FeedbackInbox } from "./feedback";
+export { PaddleTestOrders } from "./paddle";
 
-interface Env extends FeedbackEnv {
+interface Env extends FeedbackEnv, PaddleEnv {
   ASSETS: Fetcher;
   IMAGES: {
     input(stream: ReadableStream): {
@@ -21,6 +23,16 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const paddle = await paddleRoute(request, env);
+    if (paddle) return paddle;
+    if (url.pathname === "/sandbox/purchase" || url.pathname.startsWith("/sandbox/purchase/")) {
+      if (!sandboxEnabled(request, env)) return new Response("Not found", { status: 404 });
+      const result = await handler.fetch(request, env, ctx);
+      const response = new Response(result.body, result);
+      response.headers.set("X-Robots-Tag", "noindex, nofollow");
+      response.headers.set("Cache-Control", "no-store");
+      return response;
+    }
     // Normalize production URLs without redirecting localhost or Sites previews.
     if (url.hostname === "www.book2audiogo.com" ||
         (url.hostname === "book2audiogo.com" && url.protocol === "http:")) {

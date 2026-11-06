@@ -14,8 +14,14 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
-  durable_objects: { bindings: [{ name: "FEEDBACK_INBOX", class_name: "FeedbackInbox" }] },
-  migrations: [{ tag: "feedback-v1", new_sqlite_classes: ["FeedbackInbox"] }],
+  durable_objects: { bindings: [
+    { name: "FEEDBACK_INBOX", class_name: "FeedbackInbox" },
+    { name: "PADDLE_TEST_ORDERS", class_name: "PaddleTestOrders" },
+  ] },
+  migrations: [
+    { tag: "feedback-v1", new_sqlite_classes: ["FeedbackInbox"] },
+    { tag: "paddle-sandbox-v1", new_sqlite_classes: ["PaddleTestOrders"] },
+  ],
   d1_databases: d1
     ? [
         {
