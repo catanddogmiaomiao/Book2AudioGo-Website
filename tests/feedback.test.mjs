@@ -60,5 +60,9 @@ try {
   data = await list();
   assert.equal(data.rows.length, 1);
   assert.equal(data.rows[0].status, "resolved");
+  for (const [index, lang] of ["fr", "es"].entries()) {
+    assert.equal((await post({ ...payload, id: crypto.randomUUID(), lang }, { "CF-Connecting-IP": `192.0.2.${20 + index}` })).status, 201);
+  }
+  assert.deepEqual((await list()).rows.map(row => row.lang).sort(), ["es", "fr", "zh"]);
   console.log("Feedback checks passed: validation, origin checks, private inbox, durable storage, idempotency, rate limits and state updates.");
 } finally { await worker.dispose(); await rm(storage, { recursive: true, force: true, maxRetries: 5 }); }

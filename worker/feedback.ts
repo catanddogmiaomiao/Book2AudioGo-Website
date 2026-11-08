@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { ADMIN_KEY_HASH } from "./feedback-config";
+import { isLang } from "../app/_data/languages";
 
 interface InboxBinding { idFromName(name: string): unknown; get(id: unknown): { fetch(request: Request): Promise<Response> } }
 export interface FeedbackEnv { FEEDBACK_INBOX?: InboxBinding; FEEDBACK_ADMIN_KEY_HASH?: string }
@@ -54,7 +55,7 @@ export async function feedbackRoute(request: Request, env: FeedbackEnv): Promise
     } else {
       if (value.website) return json({ error: "invalid" }, 400);
       if (typeof value.message !== "string" || value.message.trim().length < 5 || value.message.trim().length > 3000 ||
-          !["issue", "idea", "other"].includes(value.kind) || !["zh", "en", "ja", "ko"].includes(value.lang) ||
+          !["issue", "idea", "other"].includes(value.kind) || !isLang(value.lang) ||
           typeof value.email !== "string" || value.email.length > 254 || (value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email)) ||
           typeof value.page !== "string" || !value.page.startsWith("/") || value.page.length > 200 ||
           !/^[a-f0-9-]{36}$/.test(value.id ?? "") ||

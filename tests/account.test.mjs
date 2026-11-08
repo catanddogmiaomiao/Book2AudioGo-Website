@@ -12,6 +12,7 @@ const user = { username: "test-reader" };
 const device = "device-01234567890123456789";
 let requests = 0;
 let revoked = false;
+const resetToken = "R".repeat(43);
 const worker = new Miniflare({
   modulesRoot: root,
   modules: ["index.js", ...files].map(file => ({ type: "ESModule", path: resolve(root, file) })),
@@ -28,6 +29,17 @@ const worker = new Miniflare({
       assert.equal((await request.json()).username, user.username);
       return Response.json({ session_token: token, user, ...(url.pathname.endsWith("register") ? { recovery_code: "TEST-RECOVERY" } : {}) });
     }
+    if (url.pathname.startsWith("/v1/auth/password-reset/")) {
+      assert.equal(request.headers.get("Authorization"), null);
+      const body = await request.json();
+      if (url.pathname.endsWith("/request")) {
+        assert.deepEqual(body, { email: "reader@example.test" });
+        return Response.json({ retry_after: 60 });
+      }
+      assert.equal(url.pathname, "/v1/auth/password-reset/complete");
+      assert.deepEqual(body, { token: resetToken, password: "new-pass-12" });
+      return Response.json({ ok: true });
+    }
     assert.equal(request.headers.get("Authorization"), "Bearer " + token);
     if (url.pathname === "/v1/auth/logout") {
       revoked = true;
@@ -39,7 +51,7 @@ const worker = new Miniflare({
       return Response.json({ message: "Removed" });
     }
     assert.equal(url.pathname, "/v1/account");
-    return Response.json({ user, plan: "pro", devices: [{ id: device, name: "Test PC", last_seen: 1 }],
+    return Response.json({ user, plan: "pro", device_limit: 2, devices: [{ id: device, name: "Test PC", last_seen: 1 }],
       live_purchases: [], sandbox_purchases: [] });
   },
 });
@@ -70,12 +82,20 @@ try {
   const signed = { Cookie: session };
   const profile = await request("/api/account/profile", { headers: signed });
   assert.equal(profile.headers.get("Cache-Control"), "no-store");
-  assert.equal((await profile.json()).plan, "pro");
+  const profileData = await profile.json();
+  assert.equal(profileData.plan, "pro");
+  assert.equal(profileData.device_limit, 2);
   assert.equal((await request("/api/account/devices/" + device, { method: "DELETE", headers: signed })).status, 403);
   assert.equal((await request("/api/account/devices/" + device, { method: "DELETE", headers: { ...signed, Origin: site } })).status, 200);
   assert.equal((await request("/api/account/licenses/refresh", { headers: signed })).status, 404);
   const register = await post("register", { username: user.username, password: "synthetic" });
-  assert.deepEqual(await register.json(), { user, recovery_code: "TEST-RECOVERY" });
+  assert.deepEqual(await register.json(), { user });
+  assert.equal((await post("password-reset/request", { email: "reader@example.test" }, "https://elsewhere.invalid")).status, 403);
+  const resetRequest = await post("password-reset/request", { email: "reader@example.test" }, site, session);
+  assert.deepEqual(await resetRequest.json(), { retry_after: 60 });
+  const reset = await post("password-reset/complete", { token: resetToken, password: "new-pass-12" }, site, session);
+  assert.deepEqual(await reset.json(), { ok: true });
+  assert.match(reset.headers.get("Set-Cookie"), /Max-Age=0/);
   const logout = await post("logout", {}, site, session);
   assert.match(logout.headers.get("Set-Cookie"), /Max-Age=0/);
   const expired = await request("/api/account/profile", { headers: signed });

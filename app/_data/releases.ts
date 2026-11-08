@@ -1,6 +1,8 @@
-export type ReleaseLang = "en" | "zh" | "ja" | "ko";
+import { htmlLang, type Lang } from "./languages";
 export const RELEASE_DATE = "2026-10-29";
 export const DOWNLOAD_URL = "https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2AudioGO-v1.0.0.zip";
+export const releaseDate = (lang: Lang) =>
+  new Intl.DateTimeFormat(htmlLang(lang), { dateStyle: "medium", timeZone: "UTC" }).format(new Date(RELEASE_DATE));
 
 type ReleaseCopy = {
   nav: string; badge: string; noticeTitle: string; noticeBody: string;
@@ -12,7 +14,43 @@ type ReleaseCopy = {
 
 // Date-based release labels reflect the distributed build without inventing an
 // application version number. Keep notices and the permanent log in one place.
-export const releaseCopy: Record<ReleaseLang, ReleaseCopy> = {
+export const releaseCopy: Record<Lang, ReleaseCopy> = {
+  fr: {
+    nav: "Mises à jour", badge: "Mise à jour Windows", noticeTitle: "L’ancienne version ne démarre plus ou ne convertit plus vos livres ? Téléchargez la dernière version.",
+    noticeBody: "29 octobre 2026. Ajout des programmes de lecture, mise à jour de la synthèse vocale et des fichiers nécessaires à l’exécution. L’archive Windows complète est disponible ici.",
+    download: "Télécharger la dernière version Windows", details: "Notes de version et instructions", back: "Retour à l’accueil",
+    title: "Notes de version", intro: "Consultez les dernières mises à jour de Book2Audio GO, les problèmes corrigés et la procédure de mise à niveau.",
+    releaseTitle: "Programmes de lecture et améliorations de stabilité", platform: "Windows 10 / 11 · Archive ZIP complète d’environ 67 Mo",
+    groups: [
+      { title: "Nouveau · Programmes de lecture", items: ["Gérez vos listes annuelles et vos envies de lecture, avec état, progression, échéances et report des livres inachevés.", "Planifiez vos lectures et vos rappels, mesurez le temps de lecture et consultez les cumuls. Les rappels fonctionnent lorsque l’application est ouverte.", "Enregistrez et modifiez vos notes par livre. Les données de lecture peuvent être sauvegardées et exportées."] },
+      { title: "Correctifs · Démarrage et synthèse vocale", items: ["Le composant de synthèse vocale suit les changements récents du service. Mettez à jour l’application si l’aperçu ou la conversion échoue.", "L’archive complète contient les fichiers requis au démarrage, notamment python312.dll."] },
+      { title: "Amélioration · Archive allégée", items: ["Les dépendances superflues ont été retirées. L’archive complète pèse environ 67 Mo et conserve l’analyse des livres et l’exportation audio."] },
+    ],
+    upgradeTitle: "Comment passer à la nouvelle version", upgradeSteps: ["Fermez l’ancienne application et sauvegardez votre bibliothèque, vos notes et les fichiers à conserver.", "Téléchargez la dernière version Windows et décompressez le ZIP complet dans un nouveau dossier.", "Ouvrez l’EXE depuis ce dossier en laissant _internal à côté. Essayez d’abord l’aperçu ou la conversion d’un chapitre court."],
+    questionsTitle: "En cas de problème", questions: [
+      { question: "Que faire si python312.dll est introuvable ?", answer: "Téléchargez à nouveau le ZIP complet et extrayez tous les fichiers. Gardez l’EXE et le dossier _internal ensemble et lancez l’EXE après l’extraction." },
+      { question: "Que faire si la conversion échoue toujours ?", answer: "Vérifiez votre connexion Internet, puis essayez l’aperçu vocal ou un chapitre court. Notez le message d’erreur si le problème persiste. Des problèmes de réseau ou de service peuvent subsister." },
+      { question: "Les rappels fonctionnent-ils quand l’application est fermée ?", answer: "Dans cette version, les rappels nécessitent que l’application soit ouverte. Le temps de lecture se mesure avec le minuteur ou se saisit manuellement." },
+    ],
+  },
+  es: {
+    nav: "Actualizaciones", badge: "Actualización de Windows", noticeTitle: "¿La versión anterior no abre o falla al convertir? Descarga la última versión.",
+    noticeBody: "29 de octubre de 2026. Planes de lectura, componente de voz actualizado y archivos de ejecución completos. Descarga aquí el paquete completo para Windows.",
+    download: "Descargar la última versión para Windows", details: "Notas y pasos para actualizar", back: "Volver al inicio",
+    title: "Notas de la versión", intro: "Consulta las últimas actualizaciones de Book2Audio GO, los problemas corregidos y cómo actualizar desde una versión anterior.",
+    releaseTitle: "Planes de lectura y mejoras de estabilidad", platform: "Windows 10 / 11 · ZIP completo de unos 67 MB",
+    groups: [
+      { title: "Novedad · Planes de lectura", items: ["Organiza la lista anual y los libros que quieres leer, registra el estado, el progreso y los plazos, y pasa los libros pendientes al año siguiente.", "Programa lecturas y recordatorios, mide el tiempo de lectura y consulta los totales. La aplicación debe permanecer abierta para recibir recordatorios.", "Guarda, edita y consulta notas por libro. Puedes exportar y respaldar tus datos de lectura."] },
+      { title: "Correcciones · Inicio y síntesis de voz", items: ["El componente de voz se ha adaptado a cambios recientes del servicio. Si falla la vista previa o la conversión, actualiza la aplicación.", "El paquete completo incluye los archivos necesarios para solucionar errores de inicio por archivos que faltan, como python312.dll."] },
+      { title: "Mejora · Descarga más ligera", items: ["Se eliminaron dependencias innecesarias. El ZIP completo ocupa unos 67 MB y conserva el análisis de libros y la exportación de audio."] },
+    ],
+    upgradeTitle: "Cómo actualizar", upgradeSteps: ["Cierra la versión anterior y guarda una copia de tu biblioteca, tus notas y los archivos que quieras conservar.", "Descarga la última versión para Windows y extrae el ZIP completo en una carpeta nueva.", "Ejecuta el EXE desde esa carpeta y conserva _internal junto a él. Prueba primero la voz o un capítulo corto."],
+    questionsTitle: "Si tienes problemas", questions: [
+      { question: "¿Qué hago si falta python312.dll?", answer: "Descarga de nuevo el ZIP completo y extrae todos los archivos. Conserva el EXE junto a la carpeta _internal y ejecútalo después de la extracción." },
+      { question: "¿Y si la conversión sigue fallando?", answer: "Comprueba la conexión a Internet y prueba la voz o un capítulo corto. Si el fallo persiste, anota el mensaje de error. Algunos problemas de red o del servicio pueden persistir." },
+      { question: "¿Recibo recordatorios con la aplicación cerrada?", answer: "En esta versión los recordatorios requieren que la aplicación esté abierta. El tiempo de lectura se registra con el temporizador o de forma manual." },
+    ],
+  },
   zh: {
     nav: "更新日志", badge: "Windows 更新", noticeTitle: "旧版无法启动或语音转换失败？请重新下载最新版。",
     noticeBody: "2026.10.29 更新：新增阅读计划，更新语音组件并完善运行依赖。已下载旧版的用户可从这里获取完整新版。",

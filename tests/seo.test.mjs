@@ -38,7 +38,7 @@ try {
 
   assert.match(html, /id="update-notice-title"/);
   assert.match(html, /Older app will not open or convert audio/);
-  assert.ok(html.includes('href="/updates?lang=en"'));
+  assert.ok(html.includes('href="/updates"'));
   const updatesResponse = await worker.dispatchFetch("https://book2audiogo.com/updates");
   assert.equal(updatesResponse.status, 200);
   const updatesHtml = await updatesResponse.text();
@@ -91,6 +91,35 @@ try {
   }
   const local = await worker.dispatchFetch("http://localhost/");
   assert.equal(local.status, 200);
+  const localizedHeadings = {
+    en: ["Convert PDF and EPUB", "Release notes", "Convert PDF to Audio and MP3 Audiobooks", "Convert EPUB to MP3 Audiobooks by Chapter", "Your account", "Feedback"],
+    zh: ["让每一本书", "更新日志", "把 PDF 转成音频和 MP3 有声书", "将 EPUB 按章节转换成 MP3 有声书", "用户中心", "留言与反馈"],
+    ja: ["すべての本に", "更新情報", "PDF を音声や MP3 オーディオブックに変換", "EPUB を章ごとの MP3 オーディオブックに変換", "アカウント", "ご意見・お問い合わせ"],
+    ko: ["모든 책에", "업데이트 내역", "PDF를 오디오와 MP3 오디오북으로 변환", "EPUB를 챕터별 MP3 오디오북으로 변환", "내 계정", "문의 및 피드백"],
+    fr: ["Vos PDF et EPUB", "Notes de version", "Convertir les PDF en audio et en livres audio MP3", "Convertir un EPUB en livre audio MP3 par chapitre", "Votre compte", "Commentaires"],
+    es: ["Convierte PDF y EPUB", "Notas de la versión", "Convertir PDF en audio y audiolibros MP3", "Convertir EPUB en audiolibros MP3 por capítulos", "Tu cuenta", "Comentarios"],
+  };
+  for (const [lang, headings] of Object.entries(localizedHeadings)) {
+    const paths = ["/", "/updates", "/pdf-to-audiobook", "/epub-to-mp3", "/account"];
+    for (const [index, path] of paths.entries()) {
+      const page = await worker.dispatchFetch(`https://book2audiogo.com${path}?lang=${lang}`);
+      assert.equal(page.status, 200, `${path} ${lang}`);
+      const body = await page.text();
+      assert.ok(body.includes(`<html lang="${lang === "zh" ? "zh-CN" : lang}">`), `${path} document language ${lang}`);
+      assert.ok(body.match(/<h1>(.*?)<\/h1>/s)?.[1].includes(headings[index]), `${path} heading ${lang}`);
+      assert.ok(body.includes(headings[5]), `${path} feedback language ${lang}`);
+      for (const option of Object.keys(localizedHeadings)) assert.ok(body.includes(`value="${option}"`));
+      if (index < 4) assert.match(body, /hreflang="fr"/i);
+      if (path === "/" && lang !== "en") assert.ok(body.includes(`href="/epub-to-mp3?lang=${lang}"`));
+    }
+  }
+  for (const [mode, heading] of [["recover", "Mot de passe oublié"], ["reset", "Réinitialiser le mot de passe"]]) {
+    const page = await worker.dispatchFetch(`https://book2audiogo.com/account?lang=fr&mode=${mode}`);
+    assert.ok((await page.text()).includes(`<h2>${heading}</h2>`));
+  }
+  const missing = await worker.dispatchFetch("https://book2audiogo.com/missing-test-page?lang=es");
+  assert.equal(missing.status, 404);
+  assert.match(await missing.text(), /Página no encontrada/);
   console.log("Checks passed: homepage, release notes, upgrade guidance, downloads, sitemap, SEO and redirects.");
 } finally {
   await worker.dispose();

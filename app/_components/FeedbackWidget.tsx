@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
-type Lang = "en" | "zh" | "ja" | "ko";
+import { useLanguage } from "./Language";
 const copy = {
+  fr: { entry: "Commentaires", title: "Aidez-nous à améliorer l’écoute", intro: "Un problème ou une idée ? Faites-nous en part.", kind: "Type de commentaire", kinds: ["Signaler un problème", "Proposer une fonction", "Autre"], message: "Votre message", placeholder: "Décrivez les étapes, le message d’erreur ou la fonction souhaitée…", email: "Adresse e-mail (facultatif)", emailHint: "Laissez votre adresse si vous souhaitez une réponse.", rating: "Expérience globale (facultatif)", ratings: ["À améliorer", "Satisfaisante", "Excellente"], privacy: "Seul l’administrateur peut voir votre message. N’incluez pas de mot de passe, de livre entier ni d’information sensible.", send: "Envoyer", sending: "Envoi…", close: "Fermer", success: "Merci, votre message a été reçu.", successBody: "Nous lirons votre message. Si vous avez indiqué une adresse, nous pourrons vous répondre.", again: "Écrire un autre message", error: "L’envoi a échoué. Votre texte est conservé. Réessayez.", limited: "Réessayez plus tard (5 messages par jour et par réseau).", invalid: "Saisissez entre 5 et 3 000 caractères et vérifiez votre adresse e-mail.", optional: "Aucun choix", count: "caractères", retry: "Connexion indisponible. Votre texte est conservé. Réessayez." },
+  es: { entry: "Comentarios", title: "Ayúdanos a mejorar la escucha", intro: "¿Tienes un problema o una idea? Cuéntanos.", kind: "Tipo de comentario", kinds: ["Informar de un problema", "Sugerir una función", "Otros comentarios"], message: "Tu mensaje", placeholder: "Describe los pasos, el error o la función que te gustaría tener…", email: "Correo electrónico (opcional)", emailHint: "Deja tu correo si quieres recibir una respuesta.", rating: "Experiencia general (opcional)", ratings: ["Puede mejorar", "Buena", "Excelente"], privacy: "Solo el administrador puede ver tu mensaje. No incluyas contraseñas, libros completos ni información confidencial.", send: "Enviar comentario", sending: "Enviando…", close: "Cerrar", success: "Gracias. Hemos recibido tu comentario.", successBody: "Revisaremos tu mensaje. Si has dejado tu correo, podremos responderte.", again: "Escribir otro", error: "No se pudo enviar. Se ha conservado tu mensaje. Inténtalo de nuevo.", limited: "Inténtalo más tarde (hasta 5 mensajes al día por red).", invalid: "Escribe entre 5 y 3000 caracteres y comprueba tu correo.", optional: "Sin selección", count: "caracteres", retry: "No hay conexión. Se ha conservado tu mensaje. Inténtalo de nuevo." },
   zh: { entry: "留言与反馈", title: "让听书体验更好一点", intro: "遇到问题，或有想要的功能？欢迎告诉我们。", kind: "反馈类型", kinds: ["遇到问题", "功能建议", "其他留言"], message: "留言内容", placeholder: "可以描述操作步骤、报错信息，或你希望增加的功能…", email: "联系邮箱（选填）", emailHint: "如需回复，请留下邮箱。", rating: "整体使用体验（选填）", ratings: ["需要改进", "还不错", "很喜欢"], privacy: "留言仅管理员可见。请勿提交密码、书籍全文或其他敏感信息。", send: "提交反馈", sending: "正在提交…", close: "关闭", success: "谢谢，反馈已收到！", successBody: "我们会认真查看你的留言。如填写了邮箱，可通过邮箱与你联系。", again: "再写一条", error: "提交失败，内容已保留，请稍后重试。", limited: "提交较频繁，请稍后再试（同一网络每天最多 5 条）。", invalid: "请填写 5–3000 字的留言，并检查邮箱格式。", optional: "不选择", count: "字", retry: "暂时无法连接，内容已保留，请重试。" },
   en: { entry: "Feedback", title: "Help make listening better", intro: "Found a problem or have an idea? We would love to hear it.", kind: "Feedback type", kinds: ["Report a problem", "Suggest a feature", "Other feedback"], message: "Your message", placeholder: "Describe the steps, error message, or feature you would like…", email: "Email (optional)", emailHint: "Leave your email if you would like a reply.", rating: "Overall experience (optional)", ratings: ["Needs work", "Good", "Love it"], privacy: "Only the administrator can see your feedback. Please do not include passwords, full books, or sensitive information.", send: "Send feedback", sending: "Sending…", close: "Close", success: "Thank you! Feedback received.", successBody: "We will review your message. If you left an email, we may contact you there.", again: "Write another", error: "Could not send. Your message is kept here; please try again.", limited: "Please try again later (up to 5 messages per network per day).", invalid: "Enter a message of 5–3000 characters and check your email address.", optional: "No selection", count: "characters", retry: "Connection unavailable. Your message is kept here; please retry." },
   ja: { entry: "ご意見・お問い合わせ", title: "聴く読書を、もっと快適に", intro: "不具合や追加してほしい機能をお聞かせください。", kind: "種類", kinds: ["不具合の報告", "機能の提案", "その他"], message: "メッセージ", placeholder: "操作手順、エラー内容、ご希望の機能など…", email: "メールアドレス（任意）", emailHint: "返信をご希望の場合はご記入ください。", rating: "全体の使い心地（任意）", ratings: ["改善が必要", "良い", "とても良い"], privacy: "内容は管理者のみ閲覧できます。パスワード、本の全文、機密情報は記入しないでください。", send: "送信", sending: "送信中…", close: "閉じる", success: "ありがとうございます。受け付けました！", successBody: "内容を確認します。メールをご記入の場合はご連絡することがあります。", again: "もう一件書く", error: "送信できませんでした。内容は保持されています。再度お試しください。", limited: "時間をおいてお試しください（同じネットワークで1日5件まで）。", invalid: "5〜3000文字の内容とメールの形式をご確認ください。", optional: "未選択", count: "文字", retry: "接続できません。内容は保持されています。再度お試しください。" },
@@ -11,32 +13,22 @@ const copy = {
 };
 
 export default function FeedbackWidget() {
-  const [lang, setLang] = useState<Lang>("en");
+  const lang = useLanguage();
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<"" | "error" | "invalid" | "limited" | "retry">("");
   const [receipt, setReceipt] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
   const requestId = useRef("");
   const inFlight = useRef(false);
-  useEffect(() => {
-    const update = () => {
-      const value = document.documentElement.lang.split("-")[0];
-      setLang(value in copy ? value as Lang : "en");
-    };
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
-    return () => observer.disconnect();
-  }, []);
   const t = copy[lang];
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (inFlight.current) return;
     const form = event.currentTarget;
     const data = new FormData(form);
-    if (message.trim().length < 5) { setError(t.invalid); return; }
+    if (message.trim().length < 5) { setError("invalid"); return; }
     inFlight.current = true; setPending(true); setError("");
     requestId.current ||= crypto.randomUUID();
     const controller = new AbortController();
@@ -45,9 +37,9 @@ export default function FeedbackWidget() {
       const response = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
         body: JSON.stringify({ id: requestId.current, kind: data.get("kind"), message: message.trim(), email: String(data.get("email") ?? "").trim(), rating: data.get("rating") ? Number(data.get("rating")) : null, lang, page: window.location.pathname, website: data.get("website") }) });
       const body = await response.json() as { ok?: boolean; id: string };
-      if (!response.ok || !body.ok) { setError(response.status === 429 ? t.limited : response.status === 400 ? t.invalid : t.error); return; }
+      if (!response.ok || !body.ok) { setError(response.status === 429 ? "limited" : response.status === 400 ? "invalid" : "error"); return; }
       setReceipt(body.id.slice(0, 8)); setSuccess(true); setMessage(""); form.reset(); requestId.current = "";
-    } catch { setError(t.retry); }
+    } catch { setError("retry"); }
     finally { clearTimeout(timeout); inFlight.current = false; setPending(false); }
   }
   return <>
@@ -62,7 +54,7 @@ export default function FeedbackWidget() {
           <label htmlFor="feedback-email">{t.email}</label><input id="feedback-email" name="email" type="email" maxLength={254} autoComplete="email" aria-describedby="feedback-email-hint" /><small id="feedback-email-hint">{t.emailHint}</small>
           <label htmlFor="feedback-rating">{t.rating}</label><select id="feedback-rating" name="rating" defaultValue=""><option value="">{t.optional}</option>{t.ratings.map((rating, i) => <option key={rating} value={i + 1}>{rating}</option>)}</select>
           <div className="feedbackTrap" aria-hidden="true"><label htmlFor="feedback-website">Website</label><input id="feedback-website" name="website" tabIndex={-1} autoComplete="off" /></div>
-          <p className="feedbackPrivacy">{t.privacy}</p><p className="feedbackError" role="alert">{error}</p><button className="feedbackSubmit" type="submit">{pending ? t.sending : t.send} <span aria-hidden="true">↗</span></button>
+          <p className="feedbackPrivacy">{t.privacy}</p><p className="feedbackError" role="alert">{error && t[error]}</p><button className="feedbackSubmit" type="submit">{pending ? t.sending : t.send} <span aria-hidden="true">↗</span></button>
         </fieldset>
       </form>}
     </dialog>

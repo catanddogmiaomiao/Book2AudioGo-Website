@@ -1,34 +1,41 @@
 "use client";
 
+import { LanguageMenu, useLanguage } from "../../_components/Language";
+import { localizedHref, paddleLang } from "../../_data/languages";
+import { paymentText, type PaymentMessage } from "../../_data/payment-copy";
+
 import { useEffect, useRef, useState } from "react";
 import { initializePaddle, type Paddle, type PaddleEventData } from "@paddle/paddle-js";
 import { PRICE_ID, sandboxToken } from "../../../shared/paddle";
 import { describeCheckoutError } from "../../../shared/paddle-errors.mjs";
 import "./purchase.css";
+import { isPaymentMessage } from "../../_data/payment-copy";
 
 // A single initialization promise also handles React StrictMode remounts.
 let paddlePromise: ReturnType<typeof initializePaddle> | undefined;
 let activeListener: ((event: PaddleEventData) => void) | undefined;
 type State = "ready" | "opening" | "open" | "paying" | "completed" | "closed" | "failed" | "error";
 const transactionPattern = /^txn_[a-z0-9]{26}$/;
-const messages: Record<State, string> = {
-  ready: "已就绪，可以开始沙盒测试购买。", opening: "正在打开测试结账…",
-  open: "测试结账已打开。", paying: "测试支付处理中，请等待结账结果。",
-  completed: "测试结账已完成，付款确认以服务端验签记录为准。",
-  closed: "已关闭结账，尚未收到完成事件；这不代表服务器已确认取消或付款失败。",
-  failed: "本次测试支付失败，可在结账窗口更换测试卡重试。",
-  error: "结账遇到错误，请关闭窗口后重试。",
+const messages: Record<State, PaymentMessage> = {
+  ready: "Ready for a sandbox purchase.", opening: "Opening test checkout…",
+  open: "Test checkout is open.", paying: "Test payment is processing.",
+  completed: "Test checkout completed. The server verifies payment separately.",
+  closed: "Checkout closed without a completion event. The payment status is unconfirmed.",
+  failed: "Test payment failed. Try a different test card in checkout.",
+  error: "Checkout encountered an error. Close it and try again.",
 };
 
 export default function Purchase({ linkedTransaction }: { linkedTransaction?: string }) {
+  const lang = useLanguage();
+  const t = (key: PaymentMessage) => paymentText(lang, key);
   const paddle = useRef<Paddle | undefined>(undefined);
   const current = useRef<State>("ready");
   const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [state, setState] = useState<State>("ready");
   const [ready, setReady] = useState(false);
-  const [problem, setProblem] = useState("");
+  const [problem, setProblem] = useState<PaymentMessage | "">("");
   const [price, setPrice] = useState("");
-  const [previewNote, setPreviewNote] = useState("正在请求 Paddle 地区价格预览…");
+  const [previewNote, setPreviewNote] = useState<PaymentMessage>("Loading Paddle regional pricing…");
   const [transaction, setTransaction] = useState("");
   const [accountTransaction, setAccountTransaction] = useState(
     linkedTransaction && transactionPattern.test(linkedTransaction) ? linkedTransaction : "",
@@ -42,7 +49,7 @@ export default function Purchase({ linkedTransaction }: { linkedTransaction?: st
     let disposed = false;
     const linked = linkedTransaction ?? new URLSearchParams(window.location.search).get("b2a_txn");
     if (linked !== null && !transactionPattern.test(linked)) {
-      setProblem("测试订单链接无效，请从软件账号页重新打开。");
+      setProblem("Invalid test order link. Reopen it from your account in the app.");
       return;
     }
     if (linked) setAccountTransaction(linked);
@@ -61,7 +68,7 @@ export default function Purchase({ linkedTransaction }: { linkedTransaction?: st
         clearTimeout(openTimer.current);
         const completedTransaction = event.data?.transaction_id ?? "";
         if (linked && completedTransaction !== linked) {
-          setProblem("完成的交易与当前账号订单不一致，请核对订单编号。");
+          setProblem("The completed transaction does not match the account order.");
           update("error");
           setTransaction(completedTransaction);
           return;
@@ -80,15 +87,15 @@ export default function Purchase({ linkedTransaction }: { linkedTransaction?: st
     (async () => {
       try {
         const response = await fetch("/api/paddle/sandbox/config", { cache: "no-store" });
-        if (!response.ok) throw new Error("沙盒未启用，请检查本地 .env 配置并重启服务。");
+        if (!response.ok) throw new Error("Sandbox is disabled. Check the local .env file and restart the service.");
         const config = await response.json() as { token: unknown; webhookConfigured: boolean };
         if (disposed) return;
         setWebhook(config.webhookConfigured);
-        if (!sandboxToken(config.token)) throw new Error("缺少有效的 test_ 沙盒客户端令牌。请在本地 .env 中填写 PADDLE_SANDBOX_CLIENT_TOKEN，然后重启服务。");
+        if (!sandboxToken(config.token)) throw new Error("A valid test_ token is required. Set PADDLE_SANDBOX_CLIENT_TOKEN in .env and restart.");
         paddlePromise ??= initializePaddle({ environment: "sandbox", token: config.token,
           eventCallback: event => activeListener?.(event) });
         const instance = await paddlePromise;
-        if (!instance) throw new Error("Paddle.js 未加载，请检查网络后刷新。");
+        if (!instance) throw new Error("Paddle.js did not load. Check your connection and reload.");
         if (disposed) return;
         // Refresh the callback even when the official SDK instance is reused after HMR.
         instance.Update({ eventCallback: event => activeListener?.(event) });
@@ -101,12 +108,12 @@ export default function Purchase({ linkedTransaction }: { linkedTransaction?: st
           const amount = result.data.details.lineItems[0]?.formattedTotals.total;
           if (!amount) throw new Error("preview");
           setPrice(amount);
-          setPreviewNote("Paddle 地区价格预览；最终币种、税费及金额以结账内的账单地址和明细为准。");
+          setPreviewNote("Paddle regional price preview. Final currency, tax and total depend on the billing details at checkout.");
         } catch {
-          if (!disposed) setPreviewNote("地区价格预览暂不可用，可继续打开结账查看 Paddle 最终金额。");
+          if (!disposed) setPreviewNote("Regional pricing is unavailable. Open checkout to see the final amount.");
         }
       } catch (error) {
-        if (!disposed) { setProblem(error instanceof Error ? error.message : "初始化失败，请刷新重试。"); setPreviewNote("配置完成后显示 Paddle 地区价格预览。"); }
+        if (!disposed) { setProblem(error instanceof Error && isPaymentMessage(error.message) ? error.message : "Initialization failed. Reload and try again."); setPreviewNote("Paddle regional pricing will appear after setup."); }
       }
     })();
     return () => { disposed = true; activeListener = undefined; clearTimeout(openTimer.current); };
@@ -128,7 +135,7 @@ export default function Purchase({ linkedTransaction }: { linkedTransaction?: st
     try {
       // An existing Paddle instance may still retain a callback from the previous module.
       paddle.current.Update({ eventCallback: event => activeListener?.(event) });
-      const settings = { displayMode: "overlay" as const, theme: "light" as const, locale: "zh-Hans", allowDiscountRemoval: false, showAddDiscounts: false };
+      const settings = { displayMode: "overlay" as const, theme: "light" as const, locale: paddleLang(lang), allowDiscountRemoval: false, showAddDiscounts: false };
       if (accountTransaction) paddle.current.Checkout.open({ transactionId: accountTransaction, settings });
       else paddle.current.Checkout.open({ items: [{ priceId: PRICE_ID, quantity: 1 }], settings });
     } catch {
@@ -140,30 +147,30 @@ export default function Purchase({ linkedTransaction }: { linkedTransaction?: st
 
   const visibleIssue = checkoutIssue ?? (state === "error" ? describeCheckoutError(null) : null);
   const statusMessage = state === "completed" && accountTransaction
-    ? "测试结账已完成。账号服务确认付款后，请回到软件刷新本机授权。"
+    ? "Test checkout is complete. Once payment is confirmed, refresh your device license in the app."
     : messages[state];
 
   return <main className="sandboxPurchase">
-    <nav className="nav wrap"><a className="brand" href="/"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><span className="pill">PADDLE SANDBOX</span></nav>
-    <div className="sandboxBanner" role="note">测试环境，不会真实扣款</div>
+    <nav className="nav wrap"><a className="brand" href={localizedHref("/", lang)}><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="accountNavControls"><span className="pill">{t("Paddle sandbox")}</span><LanguageMenu /></div></nav>
+    <div className="sandboxBanner" role="note">{t("Test environment. No real charges.")}</div>
     <section className="purchaseGrid wrap">
-      <div className="purchaseIntro"><p className="eyebrow">YOUR BOOKS. YOUR LISTENING.</p><h1>让阅读，<br/>继续被听见。</h1><p className="lead">Book2Audio GO 将电子书转换为可聆听的音频。这里用于测试 Pro 买断版的购买流程。</p>
-        <ul className="purchaseBenefits"><li>一次性购买，购买版本可永久使用</li><li>无自动续费，无订阅试用</li><li>不承诺无限云端用量或终身免费升级</li></ul>
-        <p className="note">{accountTransaction ? "这笔测试订单已关联发起购买的沙盒账号。" : (linkedTransaction === undefined ? "此入口用于独立测试结账。" : "此入口用于沙盒账号结账。")}</p>
+      <div className="purchaseIntro"><p className="eyebrow">{t("Your books, ready to listen")}</p><h1>{t("Take your reading with you.")}</h1><p className="lead">{t("Book2Audio GO converts ebooks to audio. Use this page to test buying the perpetual Pro license.")}</p>
+        <ul className="purchaseBenefits"><li>{t("One-time purchase. Keep using the version you buy.")}</li><li>{t("No automatic renewal or subscription trial.")}</li><li>{t("Cloud usage and free upgrades are subject to limits.")}</li></ul>
+        <p className="note">{t(accountTransaction ? "This test order is linked to the sandbox account that started it." : (linkedTransaction === undefined ? "This link is for standalone checkout tests." : "This link is for sandbox account checkout."))}</p>
       </div>
-      <article className="purchaseCard"><span className="pill">PRO · PERPETUAL LICENSE</span><h2>Book2Audio GO Pro</h2><p>一次买断 · 购买版本永久使用</p>
-        <div className="previewPrice">{price || "金额由 Paddle 提供"}</div><p className="note">{previewNote}</p>
-        {accountTransaction && <p className="note">账号订单编号 <code>{accountTransaction}</code></p>}
-        <button className="primary buyButton" disabled={!ready || checkoutOpen} onClick={buy}>{state === "opening" ? "正在打开…" : "测试购买 Pro"}</button>
-        {problem && <p className="purchaseProblem" role="alert">{problem}</p>}
-        {visibleIssue && <div className="purchaseProblem" role="alert"><strong>结账排查提示</strong><p>{visibleIssue.hint}</p><p>关闭 Paddle 错误窗口后可查看此提示；修正配置后再次点击测试购买。</p></div>}
-        <p className="note">仅使用 Paddle 官方测试卡。请勿填写真实银行卡信息。</p>
-        <div className="purchaseStatus" role="status" aria-live="polite"><strong>结账状态</strong><p>{ready ? statusMessage : "等待本地配置及 Paddle.js 初始化。"}</p><p>Paddle 错误代码：<code>{visibleIssue?.code ?? "尚未收到错误事件"}</code></p><small className="note">页面诊断版本：2026-11-07.1</small>{transaction && <p>测试交易编号：<code>{transaction}</code></p>}</div>
+      <article className="purchaseCard"><span className="pill">{t("PRO · Perpetual license")}</span><h2>Book2Audio GO Pro</h2><p>{t("One-time purchase · Use the purchased version indefinitely")}</p>
+        <div className="previewPrice">{price || t("Price provided by Paddle")}</div><p className="note">{t(previewNote)}</p>
+        {accountTransaction && <p className="note">{t("Account order")} <code>{accountTransaction}</code></p>}
+        <button className="primary buyButton" disabled={!ready || checkoutOpen} onClick={buy}>{t(state === "opening" ? "Opening…" : "Test purchase of Pro")}</button>
+        {problem && <p className="purchaseProblem" role="alert">{t(problem)}</p>}
+        {visibleIssue && <div className="purchaseProblem" role="alert"><strong>{t("Checkout troubleshooting")}</strong><p>{lang === "zh" ? visibleIssue.hint : t("Check the Paddle sandbox default payment link and checkout configuration, then use the error code to troubleshoot.")}</p><p>{t("Close the Paddle error window to see this hint. Fix the configuration and try again.")}</p></div>}
+        <p className="note">{t("Use an official Paddle test card only. Do not enter real card details.")}</p>
+        <div className="purchaseStatus" role="status" aria-live="polite"><strong>{t("Checkout status")}</strong><p>{t(ready ? statusMessage : "Waiting for local configuration and Paddle.js.")}</p><p>{t("Paddle error code:")}<code>{visibleIssue?.code ?? t("No error event received")}</code></p><small className="note">{t("Diagnostics version: 2026-11-07.1")}</small>{transaction && <p>{t("Test transaction:")}<code>{transaction}</code></p>}</div>
       </article>
     </section>
-    <aside className="purchaseDetails wrap"><h2>关于本次测试</h2><p>所有地区共用同一价格 ID，由 Paddle 应用已配置的地区价格。此页面不会自行换算汇率。</p><p>{accountTransaction
-      ? "测试付款完成后，等待账号服务确认 Paddle 通知，然后回到软件的账号页刷新本机授权。"
-      : (webhook ? "本地 Webhook 配置已填写，独立测试付款只记录订单。" : "服务器付款确认尚未配置，当前仅能测试前端结账。")}</p></aside>
-    <footer className="wrap"><p>Book2Audio GO · Sandbox only</p><a href="/">返回官网</a></footer>
+    <aside className="purchaseDetails wrap"><h2>{t("About this test")}</h2><p>{t("All regions use the same price ID. Paddle applies configured regional pricing. This page does not convert currencies.")}</p><p>{t(accountTransaction
+      ? "After test payment, wait for the account service to confirm the Paddle notification. Then refresh your device license in the app."
+      : (webhook ? "Local webhook configured. Standalone tests only record orders." : "Server confirmation is not configured. Only checkout can be tested."))}</p></aside>
+    <footer className="wrap"><p>{t("Book2Audio GO · Sandbox only")}</p><a href={localizedHref("/", lang)}>{t("Back to website")}</a></footer>
   </main>;
 }

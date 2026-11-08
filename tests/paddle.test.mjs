@@ -37,16 +37,24 @@ async function post(body = event, options = {}) {
   });
 }
 try {
-  const html = await worker.dispatchFetch(base + "/sandbox/purchase");
+  const html = await worker.dispatchFetch(base + "/sandbox/purchase?lang=zh");
   assert.equal(html.status, 200);
   assert.match(html.headers.get("X-Robots-Tag"), /noindex/);
   assert.match(await html.text(), /测试环境，不会真实扣款/);
   const accountPath = "/sandbox/purchase/account/" + event.data.id;
-  const accountPage = await worker.dispatchFetch(base + accountPath);
+  const accountPage = await worker.dispatchFetch(base + accountPath + "?lang=zh");
   assert.equal(accountPage.status, 200);
   const accountHtml = await accountPage.text();
   assert.match(accountHtml, /账号订单编号/);
   assert.match(accountHtml, new RegExp(event.data.id));
+  for (const [lang, label] of Object.entries({
+    en: "No real charges", ja: "実際の請求はありません", ko: "실제로 청구되지 않습니다",
+    fr: "Aucun débit réel", es: "No se realizan cobros reales",
+  })) {
+    const localized = await worker.dispatchFetch(base + accountPath + "?lang=" + lang);
+    assert.equal(localized.status, 200);
+    assert.ok((await localized.text()).includes(label), lang);
+  }
   assert.equal((await worker.dispatchFetch("https://book2audiogo.com" + accountPath)).status, 404);
   assert.equal((await worker.dispatchFetch("https://book2audiogo.com/sandbox/purchase")).status, 404);
   assert.equal((await worker.dispatchFetch("https://book2audiogo.com/api/paddle/sandbox/config")).status, 404);

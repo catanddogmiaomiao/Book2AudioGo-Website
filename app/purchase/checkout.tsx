@@ -1,23 +1,29 @@
 "use client";
 
+import { LanguageMenu, useLanguage } from "../_components/Language";
+import { localizedHref, paddleLang } from "../_data/languages";
+import { paymentText, type PaymentMessage } from "../_data/payment-copy";
+
 import { useEffect, useRef, useState } from "react";
 import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 import "../sandbox/purchase/purchase.css";
 
 export default function Checkout() {
+  const lang = useLanguage();
+  const t = (key: PaymentMessage) => paymentText(lang, key);
   const paddle = useRef<Paddle | undefined>(undefined);
   const [order, setOrder] = useState("");
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<PaymentMessage | "">("");
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const orderId = query.get("order") ?? query.get("_ptxn") ?? "";
     if (!/^txn_[a-z0-9]{26}$/.test(orderId)
         || (query.has("_ptxn") && query.get("_ptxn") !== orderId)) {
-      setStatus("请先在 Book2Audio GO 用户中心登录并发起购买。");
+      setStatus("Sign in to Book2Audio GO and start a purchase from your account.");
       return;
     }
     setOrder(orderId);
@@ -37,13 +43,13 @@ export default function Checkout() {
             if (event.name === "checkout.completed") {
               setCompleted(true);
               setStatus(event.data?.transaction_id === orderId
-                ? "结账已完成。账号服务确认付款后，请回到软件刷新本机授权。"
-                : "完成的交易与当前订单编号不一致，请在账号中心核对购买记录。");
+                ? "Checkout complete. Once payment is confirmed, refresh your device license in the app."
+                : "The completed transaction does not match this order. Check your purchase history.");
             }
             if (event.name === "checkout.closed") setBusy(false);
             if (["checkout.error", "checkout.failed", "checkout.payment.error"].includes(event.name ?? "")) {
               setBusy(false);
-              setStatus("结账遇到问题，请在关闭结账窗口后重试。");
+              setStatus("Checkout encountered an error. Close it and try again.");
             }
           },
         });
@@ -53,7 +59,7 @@ export default function Checkout() {
           setReady(true);
         }
       } catch {
-        if (active) setStatus("结账暂不可用，请稍后重新打开订单。");
+        if (active) setStatus("Checkout is unavailable. Reopen the order later.");
       }
     })();
     return () => { active = false; };
@@ -65,25 +71,27 @@ export default function Checkout() {
     setStatus("");
     try {
       paddle.current.Checkout.open({ transactionId: order,
-        settings: { displayMode: "overlay", showAddDiscounts: false, allowDiscountRemoval: false } });
+        settings: { displayMode: "overlay", locale: paddleLang(lang), showAddDiscounts: false, allowDiscountRemoval: false } });
     } catch {
       setBusy(false);
-      setStatus("无法打开结账，请稍后再试。");
+      setStatus("Could not open checkout. Try again later.");
     }
   }
 
-  return <main className="wrap purchaseGrid">
+  return <main><nav className="nav wrap"><a className="brand" href={localizedHref("/", lang)}>Book2Audio GO</a><LanguageMenu /></nav>
+    <div className="wrap purchaseGrid">
     <section className="purchaseIntro">
       <p className="eyebrow">BOOK2AUDIO GO</p>
       <h1>Book2Audio GO Pro</h1>
-      <p>一次性购买，单台设备授权。换机时可在账号中心解绑旧设备。</p>
+      <p>{t("One-time purchase for one device. Unlink your old device in your account when switching.")}</p>
     </section>
     <article className="purchaseCard">
-      <h2>PRO 单设备授权</h2>
+      <h2>{t("One-device PRO license")}</h2>
       <div className="previewPrice">US$9.99</div>
-      <p className="note">税前价格 · 一次性付款。税费以 Paddle 结账明细为准。</p>
-      <button className="primary buyButton" disabled={!ready || busy || completed} onClick={pay}>继续付款</button>
-      <p role="status" aria-live="polite">{status}</p>
+      <p className="note">{t("One-time payment, before tax. Paddle shows the tax at checkout.")}</p>
+      <button className="primary buyButton" disabled={!ready || busy || completed} onClick={pay}>{t("Continue to payment")}</button>
+      <p role="status" aria-live="polite">{status && t(status)}</p>
     </article>
+    </div>
   </main>;
 }

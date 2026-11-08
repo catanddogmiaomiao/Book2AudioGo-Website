@@ -4,6 +4,7 @@ import handler from "vinext/server/app-router-entry";
 import { feedbackRoute, type FeedbackEnv } from "./feedback";
 import { paddleRoute, sandboxEnabled, type PaddleEnv } from "./paddle";
 import { accountRoute } from "./account";
+import { isLang } from "../app/_data/languages";
 export { FeedbackInbox } from "./feedback";
 export { PaddleTestOrders } from "./paddle";
 
@@ -24,11 +25,17 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const lang = url.searchParams.get("lang");
+    const render = () => {
+      const headers = new Headers(request.headers);
+      headers.set("x-b2a-locale", isLang(lang) ? lang : "en");
+      return handler.fetch(new Request(request, { headers }), env, ctx);
+    };
     const paddle = await paddleRoute(request, env);
     if (paddle) return paddle;
     if (url.pathname === "/sandbox/purchase" || url.pathname.startsWith("/sandbox/purchase/")) {
       if (!sandboxEnabled(request, env)) return new Response("Not found", { status: 404 });
-      const result = await handler.fetch(request, env, ctx);
+      const result = await render();
       const response = new Response(result.body, result);
       response.headers.set("X-Robots-Tag", "noindex, nofollow");
       response.headers.set("Cache-Control", "no-store");
@@ -55,7 +62,7 @@ const worker = {
         },
       }, allowedWidths);
     }
-    const result = await handler.fetch(request, env, ctx);
+    const result = await render();
     if (url.pathname !== "/purchase" && url.pathname !== "/account") return result;
     const response = new Response(result.body, result);
     response.headers.set("Cache-Control", "no-store");

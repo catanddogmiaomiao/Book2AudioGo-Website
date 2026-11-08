@@ -14,9 +14,9 @@ const routes: Record<string, { method: string; path: string; auth?: boolean; ses
   "/api/account/login": { method: "POST", path: "/v1/auth/login", session: true },
   "/api/account/register": { method: "POST", path: "/v1/auth/register", session: true },
   "/api/account/email-code": { method: "POST", path: "/v1/auth/email-code" },
-  "/api/account/recover": { method: "POST", path: "/v1/auth/recover" },
+  "/api/account/password-reset/request": { method: "POST", path: "/v1/auth/password-reset/request" },
+  "/api/account/password-reset/complete": { method: "POST", path: "/v1/auth/password-reset/complete" },
   "/api/account/logout": { method: "POST", path: "/v1/auth/logout", auth: true },
-  "/api/account/recovery-code": { method: "POST", path: "/v1/account/recovery-code", auth: true },
   "/api/account/redeem": { method: "POST", path: "/v1/redemptions", auth: true },
 };
 
@@ -99,8 +99,9 @@ export async function accountRoute(request: Request): Promise<Response | null> {
     if ("session" in route && route.session) {
       if (typeof data.session_token !== "string" || !TOKEN.test(data.session_token))
         return json({ error: "unavailable" }, 502);
-      return json({ user: data.user, recovery_code: data.recovery_code }, response.status, data.session_token);
+      return json({ user: data.user }, response.status, data.session_token);
     }
+    if (url.pathname === "/api/account/password-reset/complete") return json({ ok: true }, response.status, "");
     // The browser receives only account data. An upstream token is never returned as JSON.
     delete data.session_token;
     return json(data, response.status);

@@ -75,6 +75,8 @@
   font-weight: 600;
 }
 .accountActions button { background: none; border: 0; padding: 5px 0; font: inherit; }
+.accountRedemption { margin-top: 14px; }
+.accountRedemption summary { width: fit-content; padding: 5px 0; }
 .accountMessage {
   padding: 10px 14px;
   border-radius: 8px;
@@ -82,8 +84,6 @@
   line-height: 1.6;
 }
 .accountError { background: #ffede5; color: #8c2c20; }
-.recoveryNotice { margin-bottom: 16px; }
-.recoveryNotice code { display: block; margin: 0 0 13px; overflow-wrap: anywhere; font-size: 17px; }
 .accountList { margin: 0; padding: 0; list-style: none; }
 .accountList li {
   display: flex;
