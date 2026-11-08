@@ -4,7 +4,9 @@ import { createWebhookGateway } from "./webhook-gateway-core.mjs";
 
 const endpointPath = "/paddle-sandbox-webhook-" + randomBytes(24).toString("hex");
 const port = 8788;
-const server = createWebhookGateway({ endpointPath, observe: result => console.log("sandbox_webhook_result", JSON.stringify(result)) });
+const upstream = process.argv.includes("--account-sandbox")
+  ? "http://127.0.0.1:8787/v1/paddle/sandbox/webhook" : undefined;
+const server = createWebhookGateway({ endpointPath, upstream, observe: result => console.log("sandbox_webhook_result", JSON.stringify(result)) });
 server.listen(port, "127.0.0.1", () => {
   mkdirSync(".local", { recursive: true });
   writeFileSync(".local/webhook-gateway-session.json", JSON.stringify({ port, endpointPath }, null, 2));

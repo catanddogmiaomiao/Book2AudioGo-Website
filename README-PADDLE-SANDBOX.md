@@ -2,9 +2,19 @@
 
 官网使用 Vinext、React、Vite 和 Cloudflare Worker。沙盒购买页复用官网的样式与 Worker，只在本机开发环境开放。
 
-此前检查的账号服务使用 Cloudflare Workers + D1，采用用户名、密码、恢复码、兑换码和有到期时间的授权。此页面没有现成的网页登录身份或购买版本永久授权模型。本轮不把永久购买伪装成现有到期授权，也不凭付款邮箱绑定账号。**自动激活尚未实现**；通过验签的测试付款只记入独立测试订单表，不发码、不修改用户授权。
+直接打开此页时，仍可独立测试结账和订单入库。通过桌面测试账号发起的结账会带上账号服务创建的交易 ID，验证付款后可给该本地账号开通 PRO。
 
-## 本地启动
+## 联调桌面账号和支付
+
+1. 在账号服务项目运行 `npm run build` 和 `npm run licensing:local -- init --paddle-sandbox`。初始化只需执行一次，生成独立测试签名密钥和 `.local-paddle/client-config.json`。
+2. 在 Paddle 沙盒创建具备 **Transactions Write** 权限的 API 密钥。把密钥与下方通知目标的签名密钥分别填进账号服务的 `.local-paddle/secrets.json` 中的 `B2A_PADDLE_SANDBOX_API_KEY` 和 `B2A_PADDLE_SANDBOX_WEBHOOK_SECRET`。将 `test_` 开头的客户端令牌填进官网的本地 `.env`。
+3. 在账号服务运行 `npm run licensing:local -- test-account --paddle-sandbox`，终端会显示一次性生成的本地测试登录凭据。再运行 `npm run licensing:local -- serve --paddle-sandbox`。这两个命令使用独立的本地 D1 状态。
+4. 在官网分别运行 `npm run dev` 和 `npm run webhook:account-sandbox`。用后者输出的随机路径配置 Paddle 沙盒通知目标，按下方的临时 HTTPS 隧道步骤将本地端口 `8788` 接到 Paddle。订阅 `transaction.completed`、`adjustment.created` 和 `adjustment.updated`。通知目标的签名密钥填好后重启本地账号服务。
+5. 在桌面项目运行 `python run_paddle_sandbox.py "<账号服务目录>/.local-paddle/client-config.json"`。使用本地测试账号登录，打开「用户中心 → Paddle 沙盒购买」，用 Paddle 测试卡付款。服务端确认后，在桌面端刷新设备授权。
+
+同一笔付款只发放一次权益。Paddle 确认全额退款或拒付后，设备下次联网刷新时会更新授权。账号绑定和权益数据都保存在沙盒，线上账号可继续使用原来的注册和授权流程。
+
+## 独立结账测试
 
 使用 Node.js 22.13 或更高版本，在官网仓库根目录运行：
 
@@ -82,7 +92,7 @@ Paddle 检查使用明确标为合成数据的本地测试 secret，覆盖：页
 9. 在沙盒通知记录重发同一通知，确认 `duplicate:true` 且没有第二条订单。Paddle 重发会产生当前有效签名，不要直接重用过期签名。
 10. 无效签名、重复通知与并发行为可先通过 `npm run test:paddle` 在本地隔离数据库验证。关闭并重启开发服务后，真实本地测试订单应仍保留；不要删除 `.wrangler/`。
 
-2026-11-04 已实际验证客户端令牌加载、USD 价格预览、前端成功/关闭/拒付与真实 Webhook 验签入库。本机对已验证真实事件 ID 和交易 ID 重签的合成重复通知返回 duplicate=true，订单数仍为 1；这不是 Paddle 平台原文重发。各地区账单未逐一实际验证。自动激活、退款撤销授权、7 天试用和永久授权模型均未实现，也没有承诺无限云端用量或终身免费升级。
+2026-11-04 的独立结账测试已验证客户端令牌加载、USD 价格预览、前端成功/关闭/拒付与真实 Webhook 验签入库。本机用同一事件 ID 和交易 ID 构造的合成通知返回 duplicate=true，订单数仍为 1。账号联调流程需要单独跑一笔真实的沙盒付款。
 
 ## 官方资料（2026-11-03 查阅）
 

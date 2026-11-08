@@ -10,16 +10,17 @@ import "./purchase.css";
 let paddlePromise: ReturnType<typeof initializePaddle> | undefined;
 let activeListener: ((event: PaddleEventData) => void) | undefined;
 type State = "ready" | "opening" | "open" | "paying" | "completed" | "closed" | "failed" | "error";
+const transactionPattern = /^txn_[a-z0-9]{26}$/;
 const messages: Record<State, string> = {
   ready: "已就绪，可以开始沙盒测试购买。", opening: "正在打开测试结账…",
   open: "测试结账已打开。", paying: "测试支付处理中，请等待结账结果。",
-  completed: "前端收到测试结账完成事件。付款确认以服务端验签记录为准；自动激活尚未实现。",
+  completed: "测试结账已完成，付款确认以服务端验签记录为准。",
   closed: "已关闭结账，尚未收到完成事件；这不代表服务器已确认取消或付款失败。",
   failed: "本次测试支付失败，可在结账窗口更换测试卡重试。",
   error: "结账遇到错误，请关闭窗口后重试。",
 };
 
-export default function Purchase() {
+export default function Purchase({ linkedTransaction }: { linkedTransaction?: string }) {
   const paddle = useRef<Paddle | undefined>(undefined);
   const current = useRef<State>("ready");
   const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -29,6 +30,9 @@ export default function Purchase() {
   const [price, setPrice] = useState("");
   const [previewNote, setPreviewNote] = useState("正在请求 Paddle 地区价格预览…");
   const [transaction, setTransaction] = useState("");
+  const [accountTransaction, setAccountTransaction] = useState(
+    linkedTransaction && transactionPattern.test(linkedTransaction) ? linkedTransaction : "",
+  );
   const [webhook, setWebhook] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutIssue, setCheckoutIssue] = useState<ReturnType<typeof describeCheckoutError> | null>(null);
@@ -36,6 +40,12 @@ export default function Purchase() {
 
   useEffect(() => {
     let disposed = false;
+    const linked = linkedTransaction ?? new URLSearchParams(window.location.search).get("b2a_txn");
+    if (linked !== null && !transactionPattern.test(linked)) {
+      setProblem("测试订单链接无效，请从软件账号页重新打开。");
+      return;
+    }
+    if (linked) setAccountTransaction(linked);
     activeListener = (event) => {
       if (disposed) return;
       if (event.name === "checkout.loaded") { clearTimeout(openTimer.current); setCheckoutIssue(null); update("open"); }
@@ -49,9 +59,16 @@ export default function Purchase() {
       }
       if (event.name === "checkout.completed") {
         clearTimeout(openTimer.current);
+        const completedTransaction = event.data?.transaction_id ?? "";
+        if (linked && completedTransaction !== linked) {
+          setProblem("完成的交易与当前账号订单不一致，请核对订单编号。");
+          update("error");
+          setTransaction(completedTransaction);
+          return;
+        }
         setCheckoutIssue(null);
         update("completed");
-        setTransaction(event.data?.transaction_id ?? "");
+        setTransaction(completedTransaction);
       }
       if (event.name === "checkout.closed") {
         clearTimeout(openTimer.current);
@@ -93,7 +110,7 @@ export default function Purchase() {
       }
     })();
     return () => { disposed = true; activeListener = undefined; clearTimeout(openTimer.current); };
-  }, []);
+  }, [linkedTransaction]);
 
   const buy = () => {
     if (!paddle.current || current.current === "opening" || current.current === "paying") return;
@@ -111,8 +128,9 @@ export default function Purchase() {
     try {
       // An existing Paddle instance may still retain a callback from the previous module.
       paddle.current.Update({ eventCallback: event => activeListener?.(event) });
-      paddle.current.Checkout.open({ items: [{ priceId: PRICE_ID, quantity: 1 }],
-        settings: { displayMode: "overlay", theme: "light", locale: "zh-Hans", allowDiscountRemoval: false, showAddDiscounts: false } });
+      const settings = { displayMode: "overlay" as const, theme: "light" as const, locale: "zh-Hans", allowDiscountRemoval: false, showAddDiscounts: false };
+      if (accountTransaction) paddle.current.Checkout.open({ transactionId: accountTransaction, settings });
+      else paddle.current.Checkout.open({ items: [{ priceId: PRICE_ID, quantity: 1 }], settings });
     } catch {
       clearTimeout(openTimer.current); setCheckoutOpen(false);
       setCheckoutIssue(describeCheckoutError({ code: "checkout_open_failed" }));
@@ -121,6 +139,9 @@ export default function Purchase() {
   };
 
   const visibleIssue = checkoutIssue ?? (state === "error" ? describeCheckoutError(null) : null);
+  const statusMessage = state === "completed" && accountTransaction
+    ? "测试结账已完成。账号服务确认付款后，请回到软件刷新本机授权。"
+    : messages[state];
 
   return <main className="sandboxPurchase">
     <nav className="nav wrap"><a className="brand" href="/"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><span className="pill">PADDLE SANDBOX</span></nav>
@@ -128,18 +149,21 @@ export default function Purchase() {
     <section className="purchaseGrid wrap">
       <div className="purchaseIntro"><p className="eyebrow">YOUR BOOKS. YOUR LISTENING.</p><h1>让阅读，<br/>继续被听见。</h1><p className="lead">Book2Audio GO 将电子书转换为可聆听的音频。这里用于测试 Pro 买断版的购买流程。</p>
         <ul className="purchaseBenefits"><li>一次性购买，购买版本可永久使用</li><li>无自动续费，无订阅试用</li><li>不承诺无限云端用量或终身免费升级</li></ul>
-        <p className="note">本次仅测试结账，不改变软件现有转换功能。</p>
+        <p className="note">{accountTransaction ? "这笔测试订单已关联发起购买的沙盒账号。" : (linkedTransaction === undefined ? "此入口用于独立测试结账。" : "此入口用于沙盒账号结账。")}</p>
       </div>
       <article className="purchaseCard"><span className="pill">PRO · PERPETUAL LICENSE</span><h2>Book2Audio GO Pro</h2><p>一次买断 · 购买版本永久使用</p>
         <div className="previewPrice">{price || "金额由 Paddle 提供"}</div><p className="note">{previewNote}</p>
+        {accountTransaction && <p className="note">账号订单编号 <code>{accountTransaction}</code></p>}
         <button className="primary buyButton" disabled={!ready || checkoutOpen} onClick={buy}>{state === "opening" ? "正在打开…" : "测试购买 Pro"}</button>
         {problem && <p className="purchaseProblem" role="alert">{problem}</p>}
         {visibleIssue && <div className="purchaseProblem" role="alert"><strong>结账排查提示</strong><p>{visibleIssue.hint}</p><p>关闭 Paddle 错误窗口后可查看此提示；修正配置后再次点击测试购买。</p></div>}
         <p className="note">仅使用 Paddle 官方测试卡。请勿填写真实银行卡信息。</p>
-        <div className="purchaseStatus" role="status" aria-live="polite"><strong>结账状态</strong><p>{ready ? messages[state] : "等待本地配置及 Paddle.js 初始化。"}</p><p>Paddle 错误代码：<code>{visibleIssue?.code ?? "尚未收到错误事件"}</code></p><small className="note">页面诊断版本：2026-11-03.2</small>{transaction && <p>测试交易编号：<code>{transaction}</code></p>}</div>
+        <div className="purchaseStatus" role="status" aria-live="polite"><strong>结账状态</strong><p>{ready ? statusMessage : "等待本地配置及 Paddle.js 初始化。"}</p><p>Paddle 错误代码：<code>{visibleIssue?.code ?? "尚未收到错误事件"}</code></p><small className="note">页面诊断版本：2026-11-07.1</small>{transaction && <p>测试交易编号：<code>{transaction}</code></p>}</div>
       </article>
     </section>
-    <aside className="purchaseDetails wrap"><h2>关于本次测试</h2><p>所有地区共用同一价格 ID，由 Paddle 应用已配置的地区价格。此页面不会自行换算汇率。</p><p>{webhook ? "本地 Webhook 配置已填写，尚需实际投递确认。" : "服务器付款确认尚未配置，当前仅能测试前端结账。"} 自动激活尚未实现。前端完成提示不会发放授权，也不会按付款邮箱绑定账号。</p></aside>
+    <aside className="purchaseDetails wrap"><h2>关于本次测试</h2><p>所有地区共用同一价格 ID，由 Paddle 应用已配置的地区价格。此页面不会自行换算汇率。</p><p>{accountTransaction
+      ? "测试付款完成后，等待账号服务确认 Paddle 通知，然后回到软件的账号页刷新本机授权。"
+      : (webhook ? "本地 Webhook 配置已填写，独立测试付款只记录订单。" : "服务器付款确认尚未配置，当前仅能测试前端结账。")}</p></aside>
     <footer className="wrap"><p>Book2Audio GO · Sandbox only</p><a href="/">返回官网</a></footer>
   </main>;
 }

@@ -41,8 +41,19 @@ try {
   assert.equal(html.status, 200);
   assert.match(html.headers.get("X-Robots-Tag"), /noindex/);
   assert.match(await html.text(), /测试环境，不会真实扣款/);
+  const accountPath = "/sandbox/purchase/account/" + event.data.id;
+  const accountPage = await worker.dispatchFetch(base + accountPath);
+  assert.equal(accountPage.status, 200);
+  const accountHtml = await accountPage.text();
+  assert.match(accountHtml, /账号订单编号/);
+  assert.match(accountHtml, new RegExp(event.data.id));
+  assert.equal((await worker.dispatchFetch("https://book2audiogo.com" + accountPath)).status, 404);
   assert.equal((await worker.dispatchFetch("https://book2audiogo.com/sandbox/purchase")).status, 404);
   assert.equal((await worker.dispatchFetch("https://book2audiogo.com/api/paddle/sandbox/config")).status, 404);
+  const livePage = await worker.dispatchFetch("https://book2audiogo.com/purchase");
+  assert.equal(livePage.status, 200);
+  assert.match(await livePage.text(), /US\$9\.99/);
+  assert.equal((await worker.dispatchFetch("https://book2audiogo.com/api/paddle/live/config")).status, 404);
   const publicConfig = await (await worker.dispatchFetch(base + "/api/paddle/sandbox/config")).json();
   assert.equal(publicConfig.token, null);
   assert.equal(JSON.stringify(publicConfig).includes(secret), false);
@@ -86,5 +97,5 @@ try {
   console.log("Paddle checks passed: sandbox gates, no secret exposure, SDK raw-body verification, expired/future/invalid signatures, product/price/status validation, concurrent dedupe, durable restart, no activation.");
 } finally {
   await worker.dispose();
-  await rm(storage, { recursive: true, force: true });
+  await rm(storage, { recursive: true, force: true, maxRetries: 5 });
 }

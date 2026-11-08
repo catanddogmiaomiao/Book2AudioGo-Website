@@ -7,6 +7,7 @@ export interface PaddleEnv {
   B2A_PADDLE_SANDBOX_ENABLED?: string;
   PADDLE_SANDBOX_CLIENT_TOKEN?: string;
   PADDLE_SANDBOX_WEBHOOK_SECRET?: string;
+  PADDLE_LIVE_CLIENT_TOKEN?: string;
   PADDLE_TEST_ORDERS?: OrdersBinding;
 }
 const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow", "X-Content-Type-Options": "nosniff" };
@@ -30,7 +31,13 @@ async function rawBody(request: Request) {
   return raw + decoder.decode();
 }
 export async function paddleRoute(request: Request, env: PaddleEnv): Promise<Response | null> {
-  const path = new URL(request.url).pathname;
+  const url = new URL(request.url), path = url.pathname;
+  if (path === "/api/paddle/live/config") {
+    const token = env.PADDLE_LIVE_CLIENT_TOKEN ?? "";
+    if (request.method !== "GET" || url.origin !== "https://book2audiogo.com" || !/^live_[A-Za-z0-9_]+$/.test(token))
+      return json({ error: "checkout_unavailable" }, 404);
+    return json({ token });
+  }
   if (!path.startsWith("/api/paddle/sandbox/")) return null;
   if (!sandboxEnabled(request, env)) return json({ error: "sandbox_disabled" }, 404);
   if (path === "/api/paddle/sandbox/config" && request.method === "GET") {

@@ -61,4 +61,4 @@ try {
   assert.equal(data.rows.length, 1);
   assert.equal(data.rows[0].status, "resolved");
   console.log("Feedback checks passed: validation, origin checks, private inbox, durable storage, idempotency, rate limits and state updates.");
-} finally { await worker.dispose(); await rm(storage, { recursive: true, force: true }); }
+} finally { await worker.dispose(); await rm(storage, { recursive: true, force: true, maxRetries: 5 }); }

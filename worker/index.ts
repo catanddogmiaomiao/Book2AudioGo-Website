@@ -3,6 +3,7 @@ import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } fr
 import handler from "vinext/server/app-router-entry";
 import { feedbackRoute, type FeedbackEnv } from "./feedback";
 import { paddleRoute, sandboxEnabled, type PaddleEnv } from "./paddle";
+import { accountRoute } from "./account";
 export { FeedbackInbox } from "./feedback";
 export { PaddleTestOrders } from "./paddle";
 
@@ -40,6 +41,8 @@ const worker = {
       url.hostname = "book2audiogo.com";
       return Response.redirect(url.toString(), 301);
     }
+    const account = await accountRoute(request);
+    if (account) return account;
     const feedback = await feedbackRoute(request, env);
     if (feedback) return feedback;
     if (url.pathname === "/_vinext/image") {
@@ -52,7 +55,13 @@ const worker = {
         },
       }, allowedWidths);
     }
-    return handler.fetch(request, env, ctx);
+    const result = await handler.fetch(request, env, ctx);
+    if (url.pathname !== "/purchase" && url.pathname !== "/account") return result;
+    const response = new Response(result.body, result);
+    response.headers.set("Cache-Control", "no-store");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    return response;
   },
 };
 export default worker;

@@ -1,0 +1,118 @@
+.accountSite .accountContent {
+  max-width: 860px;
+  padding: 36px 0 84px;
+}
+.accountSite h1 {
+  margin: 0 0 24px;
+  font-size: clamp(32px, 5vw, 48px);
+  letter-spacing: -.04em;
+}
+.accountDashboard { display: grid; gap: 16px; }
+.accountCard {
+  padding: clamp(18px, 4vw, 30px);
+  background: #fffdf8;
+  border: 1px solid #17333b25;
+  border-radius: 16px;
+}
+.accountCard h2 { margin: 0 0 9px; font-size: 22px; }
+.accountCard p { margin: 6px 0 14px; color: #40585f; line-height: 1.6; }
+.accountAuth { max-width: 540px; }
+.accountProfile, .accountSectionHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.accountProfile .eyebrow, .accountProfile h2 { margin: 0; }
+.accountProfile .accountOutline, .accountSectionHead .accountOutline { margin-left: auto; }
+.accountCard fieldset {
+  display: grid;
+  gap: 13px;
+  border: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 14px 0 0;
+}
+.accountCard label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+.accountCard input:not([type=checkbox]) {
+  width: 100%;
+  min-height: 43px;
+  padding: 8px 11px;
+  border: 1px solid #a9bdb8;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+}
+.accountCard .accountCheck {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-weight: 400;
+}
+.accountCheck input { accent-color: var(--teal); }
+.accountInline { display: flex; align-items: end; gap: 10px; }
+.accountInline label { flex: 1; min-width: 0; }
+.accountOutline {
+  width: fit-content;
+  min-height: 41px;
+  padding: 7px 14px;
+  border: 1px solid #6c9a93;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--teal);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.accountSite button:disabled { opacity: .6; cursor: wait; }
+.accountSubmit { border: 0; cursor: pointer; justify-content: center; }
+.accountActions { display: flex; gap: 20px; margin-top: 15px; }
+.accountActions button, .accountCard summary {
+  color: var(--teal);
+  cursor: pointer;
+  font-weight: 600;
+}
+.accountActions button { background: none; border: 0; padding: 5px 0; font: inherit; }
+.accountMessage {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #ddf5ea;
+  line-height: 1.6;
+}
+.accountError { background: #ffede5; color: #8c2c20; }
+.recoveryNotice { margin-bottom: 16px; }
+.recoveryNotice code { display: block; margin: 0 0 13px; overflow-wrap: anywhere; font-size: 17px; }
+.accountList { margin: 0; padding: 0; list-style: none; }
+.accountList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #17333b20;
+}
+.accountList small { display: block; margin-top: 5px; color: #40585f; overflow-wrap: anywhere; }
+.accountList li > div { min-width: 0; overflow-wrap: anywhere; }
+.accountNavLink {
+  color: var(--teal);
+  padding: 7px 11px;
+  border: 1px solid #6c9a93;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.accountNavControls { display: flex; align-items: center; gap: 9px; }
+@media (max-width: 500px) {
+  .accountSite .accountContent { padding-top: 20px; }
+  .accountNavLink { padding-inline: 6px; font-size: 12px; }
+  .accountNavControls { gap: 5px; }
+}
+@media (max-width: 370px) {
+  .accountNavControls .language button { padding-inline: 5px; }
+  .nav:has(.accountNavControls) .brandmark { width: 32px; height: 32px; }
+  .nav:has(.accountNavControls) .brand { gap: 6px; }
+}

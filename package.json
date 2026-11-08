@@ -15,6 +15,7 @@
     "test:paddle": "node scripts/local.mjs paddle-test",
     "typecheck": "node scripts/local.mjs typecheck",
     "webhook:gateway": "node scripts/local.mjs webhook-gateway",
+    "webhook:account-sandbox": "node scripts/local.mjs webhook-account-sandbox",
     "test:webhook-gateway": "node scripts/local.mjs gateway-test"
   },
   "dependencies": {

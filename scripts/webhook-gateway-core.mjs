@@ -5,7 +5,8 @@ const MAX_BODY = 262144;
 export function createWebhookGateway({ endpointPath, upstream = "http://127.0.0.1:3000/api/paddle/sandbox/webhook", observe = () => {} }) {
   if (!/^\/paddle-sandbox-webhook-[a-f0-9]{48}$/.test(endpointPath)) throw new Error("Invalid dedicated webhook path");
   const target = new URL(upstream);
-  if (target.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(target.hostname) || target.pathname !== "/api/paddle/sandbox/webhook" || target.search || target.username || target.password) throw new Error("Upstream must be the local sandbox webhook");
+  const accountSandbox = target.pathname === "/v1/paddle/sandbox/webhook";
+  if (target.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(target.hostname) || (!accountSandbox && target.pathname !== "/api/paddle/sandbox/webhook") || target.search || target.username || target.password) throw new Error("Upstream must be the local sandbox webhook");
   const server = createServer(async (req, res) => {
     const reply = (status, body) => { res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" }); res.end(JSON.stringify(body)); };
     if (req.url !== endpointPath || req.method !== "POST") { req.resume(); return reply(404, { error: "not_found" }); }
@@ -26,7 +27,8 @@ export function createWebhookGateway({ endpointPath, upstream = "http://127.0.0.
       // Return only known status fields. Do not echo payloads, headers or upstream details.
       const data = await response.json().catch(() => ({}));
       const result = response.ok
-        ? { received: data.received === true, duplicate: data.duplicate === true, ignored: data.ignored === true, activation: "not_implemented" }
+        ? { received: data.received === true, duplicate: data.duplicate === true, ignored: data.ignored === true,
+          activation: accountSandbox ? (data.activated === true ? "sandbox_granted" : "sandbox_unchanged") : "not_implemented" }
         : { error: "upstream_rejected" };
       observe({ status: response.status, received: result.received === true, duplicate: result.duplicate === true });
       reply(response.status, result);

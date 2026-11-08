@@ -46,9 +46,10 @@ if (command === "dev" || command === "start") {
 else if (command === "typecheck") checkTypes();
 else if (command === "paddle-test") run(["tests/paddle.test.mjs"]);
 else if (command === "webhook-gateway") run(["scripts/webhook-gateway.mjs"]);
+else if (command === "webhook-account-sandbox") run(["scripts/webhook-gateway.mjs", "--account-sandbox"]);
 else if (command === "gateway-test") run(["tests/webhook-gateway.test.mjs"]);
 else if (command === "verify") {
   run([vinext, "build"]);
   checkTypes();
-  for (const test of ["seo", "feedback", "paddle", "webhook-gateway"]) run([`tests/${test}.test.mjs`]);
+  for (const test of ["seo", "feedback", "paddle", "webhook-gateway", "account"]) run([`tests/${test}.test.mjs`]);
 } else { console.error("Expected dev, start, build, typecheck, paddle-test, webhook-gateway, gateway-test or verify."); process.exit(1); }
