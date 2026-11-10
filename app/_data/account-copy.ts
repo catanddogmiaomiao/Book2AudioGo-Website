@@ -1,6 +1,12 @@
 import { localize } from "./languages";
 
 export const accountCopy = {
+  "Avatar settings": ["头像设置","アバター設定","프로필 사진 설정","Paramètres de l’avatar","Ajustes del avatar"],
+  "Upload avatar": ["上传头像","アバターをアップロード","프로필 사진 업로드","Importer un avatar","Subir avatar"],
+  "Restore default avatar": ["恢复默认头像","既定のアバターに戻す","기본 프로필 사진 복원","Rétablir l’avatar par défaut","Restaurar el avatar predeterminado"],
+  "Choose a valid JPG, PNG or WebP image up to 10 MB.": ["请选择有效的 JPG、PNG 或 WebP 图片，大小不超过 10 MB。","10 MB 以下の有効な JPG、PNG、WebP 画像を選択してください。","10MB 이하의 올바른 JPG, PNG 또는 WebP 이미지를 선택하세요.","Choisissez une image JPG, PNG ou WebP valide de 10 Mo maximum.","Elige una imagen JPG, PNG o WebP válida de hasta 10 MB."],
+  "Avatar updated.": ["头像已更新。","アバターを更新しました。","프로필 사진을 업데이트했습니다.","Avatar mis à jour.","Avatar actualizado."],
+  "Default avatar restored.": ["已恢复默认头像。","既定のアバターに戻しました。","기본 프로필 사진을 복원했습니다.","Avatar par défaut rétabli.","Avatar predeterminado restaurado."],
   "Chinese original": ["中文原文", "中国語原文", "중국어 원문", "Texte original en chinois", "Original en chino"],
   "Too many attempts. Try again later.": ["操作过于频繁，请稍后再试。","試行回数が多すぎます。しばらくしてからお試しください。","시도 횟수가 너무 많습니다. 잠시 후 다시 시도하세요.","Trop de tentatives. Réessayez plus tard.","Demasiados intentos. Inténtalo más tarde."],
   "Sign-in failed or your session expired.": ["登录失败或会话已失效。","ログインに失敗したか、セッションの有効期限が切れました。","로그인에 실패했거나 세션이 만료되었습니다.","La connexion a échoué ou votre session a expiré.","No se pudo iniciar sesión o la sesión ha caducado."],

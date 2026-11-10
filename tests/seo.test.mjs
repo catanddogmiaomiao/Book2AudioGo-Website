@@ -37,7 +37,7 @@ try {
   assert.doesNotMatch(html, /<meta[^>]+content="[^"]*noindex/i);
 
   assert.match(html, /id="update-notice-title"/);
-  assert.match(html, /Older app will not open or convert audio/);
+  assert.match(html, /Version 1\.2\.0 is available/);
   assert.ok(html.includes('href="/updates"'));
   const updatesResponse = await worker.dispatchFetch("https://book2audiogo.com/updates");
   assert.equal(updatesResponse.status, 200);
@@ -45,11 +45,11 @@ try {
   assert.equal((updatesHtml.match(/<h1[\s>]/g) ?? []).length, 1);
   assert.ok(updatesHtml.includes("<h1>Release notes</h1>"));
   assert.match(updatesHtml, /rel="canonical" href="https:\/\/book2audiogo.com\/updates"/);
-  for (const text of ["Reading plans and reliability update", "How to upgrade", "python312.dll", "_internal", "about 67 MB", "app is running"]) {
+  for (const text of ["Book2Audio GO 1.2.0", "How to upgrade", "64-bit installer", "about 59 MB", "run the EXE"]) {
     assert.ok(updatesHtml.includes(text), "Release notes missing: " + text);
   }
   for (const htmlPage of [html, updatesHtml]) {
-    assert.ok(htmlPage.includes('href="https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/Book2AudioGO-v1.0.0.zip"'));
+    assert.ok(htmlPage.includes('href="/download/windows"'));
   }
   const pageTitles = new Set([html.match(/<title>(.*?)<\/title>/)[1]]);
   for (const [path, heading] of [["/pdf-to-audiobook", "Convert PDF to Audio and MP3 Audiobooks"], ["/epub-to-mp3", "Convert EPUB to MP3 Audiobooks by Chapter"]]) {

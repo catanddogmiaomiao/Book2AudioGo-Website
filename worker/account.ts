@@ -10,6 +10,7 @@ const headers = {
 };
 const routes: Record<string, { method: string; path: string; auth?: boolean; session?: boolean }> = {
   "/api/account/profile": { method: "GET", path: "/v1/account", auth: true },
+  "/api/account/avatar": { method: "POST", path: "/v1/account/avatar", auth: true },
   "/api/account/policy": { method: "GET", path: "/v1/policy" },
   "/api/account/login": { method: "POST", path: "/v1/auth/login", session: true },
   "/api/account/register": { method: "POST", path: "/v1/auth/register", session: true },
@@ -55,7 +56,7 @@ async function requestBody(request: Request) {
   }
 }
 
-export async function accountRoute(request: Request): Promise<Response | null> {
+export async function accountRoute(request: Request, db?: D1Database, ctx?: { waitUntil(promise: Promise<unknown>): void }): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/account/")) return null;
   const device = DEVICE.exec(url.pathname);
@@ -99,6 +100,18 @@ export async function accountRoute(request: Request): Promise<Response | null> {
     if ("session" in route && route.session) {
       if (typeof data.session_token !== "string" || !TOKEN.test(data.session_token))
         return json({ error: "unavailable" }, 502);
+      if (url.pathname === "/api/account/register" && response.status === 201 && db && ctx) {
+        // For website registrations the original visitor metadata is available here, before the Worker proxy.
+        const user = data.user as { id?: unknown } | undefined;
+        const country = request.cf?.country;
+        const region = request.cf?.region;
+        if (typeof user?.id === "string" && /^[0-9a-f-]{36}$/.test(user.id) &&
+            typeof country === "string" && /^[A-Z]{2}$/.test(country) && country !== "XX") {
+          ctx.waitUntil(db.prepare("UPDATE users SET registration_country=?, registration_region=? WHERE id=?")
+            .bind(country, typeof region === "string" ? region.trim().slice(0, 80) || null : null, user.id).run()
+            .catch(() => console.warn("registration_region_write_failed")));
+        }
+      }
       return json({ user: data.user }, response.status, data.session_token);
     }
     if (url.pathname === "/api/account/password-reset/complete") return json({ ok: true }, response.status, "");

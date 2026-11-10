@@ -24,6 +24,21 @@
   gap: 14px;
 }
 .accountProfile .eyebrow, .accountProfile h2 { margin: 0; }
+.accountAvatar { position: relative; }
+.accountAvatar summary { list-style: none; width: 44px; height: 44px; border-radius: 50%; }
+.accountAvatar summary::-webkit-details-marker { display: none; }
+.accountAvatar summary:hover, .accountAvatar summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+.accountAvatar img { display: block; border-radius: 50%; object-fit: cover; }
+.accountAvatarActions {
+  position: absolute; z-index: 2; top: calc(100% + 8px); left: 0;
+  min-width: max-content; padding: 5px; border: 1px solid #b9d9ce; border-radius: 8px;
+  background: #fffdf8; box-shadow: 0 6px 14px #17333b22;
+}
+.accountAvatarActions button {
+  display: block; width: 100%; padding: 7px 10px; text-align: left;
+  background: transparent; color: var(--teal); border: 0; border-radius: 6px; font: inherit; cursor: pointer;
+}
+.accountAvatarActions button:hover, .accountAvatarActions button:focus-visible { background: #ddf5ea; }
 .accountProfile .accountOutline, .accountSectionHead .accountOutline { margin-left: auto; }
 .accountCard fieldset {
   display: grid;

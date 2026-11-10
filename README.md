@@ -18,6 +18,12 @@ npm run build
 
 This starter does not use `wrangler.jsonc`.
 
+For the production Book2Audio GO Worker build, set `B2A_ACCOUNT_ANALYTICS_DB_ID`
+to the existing account service D1 database ID before running `npm run build`.
+The generated configuration then includes the `ACCOUNT_ANALYTICS` binding for
+the administrator dashboard. Apply the account repository's D1 migrations
+before deploying the website.
+
 ## Included Shape
 
 - edit site code under `app/`

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { LanguageMenu, useLanguage } from "../_components/Language";
 import { htmlLang, localizedHref } from "../_data/languages";
@@ -10,6 +10,7 @@ type Message = keyof typeof accountCopy;
 type Mode = "login" | "register" | "recover" | "reset";
 type Profile = {
   user: { username: string };
+  avatar?: string | null;
   plan: string;
   expires_at: number | null;
   single_device_pro?: boolean;
@@ -26,7 +27,7 @@ class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
-async function api<T>(route: string, body?: Record<string, string>, method = body ? "POST" : "GET") {
+async function api<T>(route: string, body?: Record<string, string | null>, method = body ? "POST" : "GET") {
   const response = await fetch("/api/account/" + route, {
     method, cache: "no-store", credentials: "same-origin",
     headers: body ? { "Content-Type": "application/json" } : undefined,
@@ -38,6 +39,29 @@ async function api<T>(route: string, body?: Record<string, string>, method = bod
 }
 
 const documents = "https://accounts.book2audiogo.com/v1/legal/";
+
+async function prepareAvatar(file: File) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024)
+    throw new Error("Unsupported image");
+  const bitmap = await createImageBitmap(file);
+  try {
+    if (bitmap.width * bitmap.height > 40_000_000) throw new Error("Image too large");
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 128;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas unavailable");
+    const side = Math.min(bitmap.width, bitmap.height);
+    context.fillStyle = "#FFFEFB";
+    context.fillRect(0, 0, 128, 128);
+    context.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 128, 128);
+    for (const quality of [0.8, 0.65, 0.5]) {
+      const image = canvas.toDataURL("image/jpeg", quality);
+      const data = image.slice("data:image/jpeg;base64,".length);
+      if (image.startsWith("data:image/jpeg;base64,") && data.length <= 12000) return data;
+    }
+    throw new Error("Avatar exceeds storage limit");
+  } finally { bitmap.close(); }
+}
 async function policy() {
   const { agreement_version, privacy_version } = await api<{ agreement_version: string; privacy_version: string }>("policy");
   return { agreement_version, privacy_version };
@@ -47,6 +71,8 @@ export default function Account({ initialMode }: { initialMode: Mode }) {
   const lang = useLanguage();
   const [mode, setMode] = useState(initialMode);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const avatarFile = useRef<HTMLInputElement>(null);
+  const avatarMenu = useRef<HTMLDetailsElement>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState<Message | "">("");
@@ -192,6 +218,23 @@ export default function Account({ initialMode }: { initialMode: Mode }) {
     });
   }
 
+  function changeAvatar(file: File | null) {
+    avatarMenu.current?.removeAttribute("open");
+    void run(async () => {
+      let avatar: string | null = null;
+      try {
+        if (file) avatar = await prepareAvatar(file);
+      } catch {
+        setProblem(true);
+        setMessage("Choose a valid JPG, PNG or WebP image up to 10 MB.");
+        return;
+      }
+      const result = await api<{ avatar: string | null }>("avatar", { avatar });
+      setProfile(current => current && { ...current, avatar: result.avatar });
+      setMessage(avatar ? "Avatar updated." : "Default avatar restored.");
+    });
+  }
+
   const orderStatus: Record<string, string> = {
     completed: t("Paid"), revoked: t("Access revoked"),
     redeemed: t("Redeemed"), refunded: t("Refunded"), issued: t("Unclaimed"),
@@ -250,6 +293,25 @@ export default function Account({ initialMode }: { initialMode: Mode }) {
         </div>
       </section> : <div className="accountDashboard">
         <section className="accountCard accountProfile">
+          <details className="accountAvatar" ref={avatarMenu}>
+            <summary title={t("Avatar settings")} aria-label={t("Avatar settings")}>
+              {profile.avatar ? <img src={`data:image/jpeg;base64,${profile.avatar}`} alt="" width={44} height={44} />
+                : <svg width="44" height="44" viewBox="0 0 32 32" aria-hidden="true">
+                    <circle cx="16" cy="16" r="16" fill="#B9F5DC" />
+                    <circle cx="16" cy="11" r="4" fill="#064F55" />
+                    <rect x="8" y="17" width="16" height="8" rx="4" fill="#064F55" />
+                  </svg>}
+            </summary>
+            <div className="accountAvatarActions">
+              <button type="button" disabled={busy} onClick={() => avatarFile.current?.click()}>{t("Upload avatar")}</button>
+              {profile.avatar && <button type="button" disabled={busy} onClick={() => changeAvatar(null)}>{t("Restore default avatar")}</button>}
+            </div>
+            <input ref={avatarFile} hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={event => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = "";
+              if (file) changeAvatar(file);
+            }} />
+          </details>
           <div><p className="eyebrow">{t("Signed in")}</p><h2>{profile.user.username}</h2></div>
           <span className="pill">{profile.plan === "pro" ? "PRO" : t("Free")}</span>
           {canUpgrade && <button className="primary accountSubmit" aria-expanded={upgradeOpen}

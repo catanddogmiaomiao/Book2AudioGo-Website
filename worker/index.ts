@@ -4,11 +4,13 @@ import handler from "vinext/server/app-router-entry";
 import { feedbackRoute, type FeedbackEnv } from "./feedback";
 import { paddleRoute, sandboxEnabled, type PaddleEnv } from "./paddle";
 import { accountRoute } from "./account";
+import { downloadRoute, type DownloadEnv } from "./downloads";
 import { isLang } from "../app/_data/languages";
 export { FeedbackInbox } from "./feedback";
 export { PaddleTestOrders } from "./paddle";
+export { DownloadStats } from "./downloads";
 
-interface Env extends FeedbackEnv, PaddleEnv {
+interface Env extends FeedbackEnv, PaddleEnv, DownloadEnv {
   ASSETS: Fetcher;
   IMAGES: {
     input(stream: ReadableStream): {
@@ -48,7 +50,9 @@ const worker = {
       url.hostname = "book2audiogo.com";
       return Response.redirect(url.toString(), 301);
     }
-    const account = await accountRoute(request);
+    const download = await downloadRoute(request, env, ctx);
+    if (download) return download;
+    const account = await accountRoute(request, env.ACCOUNT_ANALYTICS, ctx);
     if (account) return account;
     const feedback = await feedbackRoute(request, env);
     if (feedback) return feedback;

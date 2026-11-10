@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { ADMIN_KEY_HASH } from "./feedback-config";
+import { hasAdminAccess } from "./admin-auth";
 import { isLang } from "../app/_data/languages";
 
 interface InboxBinding { idFromName(name: string): unknown; get(id: unknown): { fetch(request: Request): Promise<Response> } }
@@ -31,15 +31,7 @@ export async function feedbackRoute(request: Request, env: FeedbackEnv): Promise
   const admin = url.pathname === "/admin/feedback" || url.pathname === "/api/admin/feedback";
   if (!admin && url.pathname !== "/api/feedback") return null;
   if (admin) {
-    let key = "";
-    try {
-      const authorization = request.headers.get("authorization") ?? "";
-      if (authorization.startsWith("Basic ")) {
-        const credentials = atob(authorization.slice(6));
-        if (credentials.startsWith("admin:")) key = credentials.slice(6);
-      }
-    } catch { /* Invalid credentials fail closed. */ }
-    if (!key || await sha(key) !== (env.FEEDBACK_ADMIN_KEY_HASH ?? ADMIN_KEY_HASH)) return new Response("Administrator sign-in required", { status: 401, headers: { ...headers, "WWW-Authenticate": 'Basic realm="Book2Audio GO feedback", charset="UTF-8"', "X-Robots-Tag": "noindex, nofollow" } });
+    if (!await hasAdminAccess(request, env.FEEDBACK_ADMIN_KEY_HASH)) return new Response("Administrator sign-in required", { status: 401, headers: { ...headers, "WWW-Authenticate": 'Basic realm="Book2Audio GO feedback", charset="UTF-8"', "X-Robots-Tag": "noindex, nofollow" } });
     if (url.pathname === "/admin/feedback") {
       if (request.method !== "GET") return json({ error: "method" }, 405);
       return new Response(adminHtml, { headers: { ...headers, "Content-Type": "text/html; charset=utf-8", "X-Robots-Tag": "noindex, nofollow", "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'" } });

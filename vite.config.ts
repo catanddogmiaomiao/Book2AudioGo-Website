@@ -7,6 +7,7 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
 const { d1, r2 } = hostingConfig;
+const accountAnalyticsDatabaseId = process.env.B2A_ACCOUNT_ANALYTICS_DB_ID;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -17,20 +18,25 @@ const localBindingConfig = {
   durable_objects: { bindings: [
     { name: "FEEDBACK_INBOX", class_name: "FeedbackInbox" },
     { name: "PADDLE_TEST_ORDERS", class_name: "PaddleTestOrders" },
+    { name: "DOWNLOAD_STATS", class_name: "DownloadStats" },
   ] },
   migrations: [
     { tag: "feedback-v1", new_sqlite_classes: ["FeedbackInbox"] },
     { tag: "paddle-sandbox-v1", new_sqlite_classes: ["PaddleTestOrders"] },
+    { tag: "download-stats-v1", new_sqlite_classes: ["DownloadStats"] },
   ],
-  d1_databases: d1
-    ? [
-        {
+  d1_databases: [
+    ...(d1 ? [{
           binding: d1,
           database_name: "site-creator-d1",
           database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
-        },
-      ]
-    : [],
+    }] : []),
+    ...(accountAnalyticsDatabaseId ? [{
+      binding: "ACCOUNT_ANALYTICS",
+      database_name: "book2audiogo-accounts",
+      database_id: accountAnalyticsDatabaseId,
+    }] : []),
+  ],
   r2_buckets: r2
     ? [
         {

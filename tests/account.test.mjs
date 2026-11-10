@@ -41,6 +41,11 @@ const worker = new Miniflare({
       return Response.json({ ok: true });
     }
     assert.equal(request.headers.get("Authorization"), "Bearer " + token);
+    if (url.pathname === "/v1/account/avatar") {
+      const body = await request.json();
+      assert.deepEqual(body, { avatar: null });
+      return Response.json(body);
+    }
     if (url.pathname === "/v1/auth/logout") {
       revoked = true;
       return Response.json({ message: "Signed out" });
@@ -68,6 +73,7 @@ try {
   assert.match(await page.text(), /Your account/);
   assert.match(await (await request("/")).text(), /\/account\?lang=en/);
   assert.equal((await request("/api/account/profile")).status, 401);
+  assert.equal((await post("avatar", { avatar: null })).status, 401);
   assert.equal((await post("login", { username: user.username }, "https://elsewhere.invalid")).status, 403);
   assert.equal((await post("login", { password: "a".repeat(17000) })).status, 400);
   assert.equal(requests, 0);
@@ -80,6 +86,8 @@ try {
   assert.deepEqual(await login.json(), { user });
   const session = cookie.split(";")[0];
   const signed = { Cookie: session };
+  assert.equal((await post("avatar", { avatar: null }, "https://elsewhere.invalid", session)).status, 403);
+  assert.deepEqual(await (await post("avatar", { avatar: null }, site, session)).json(), { avatar: null });
   const profile = await request("/api/account/profile", { headers: signed });
   assert.equal(profile.headers.get("Cache-Control"), "no-store");
   const profileData = await profile.json();
