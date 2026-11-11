@@ -9,6 +9,18 @@ const serverRoot = resolve("dist/server");
 const files = (await readdir(serverRoot, { recursive: true })).filter(file => /\.(m?js)$/.test(file) && file !== "index.js");
 const storage = await mkdtemp(join(tmpdir(), "book-feedback-test-"));
 const config = {
+  outboundService: async request => {
+    assert.equal(new URL(request.url).origin, 'https://accounts.book2audiogo.com');
+    assert.equal(request.headers.get('Authorization'), auth);
+    if(request.method==='POST') {
+      const body=await request.json(); assert.equal(body.action,'issue');
+      assert.equal(body.reference,'book2AudioGoPERFORMANCE');
+      assert.equal(body.days,7);
+      return Response.json({message:'兑换码已生成',code:'B2A-TEST-ONLY-CODE'});
+    }
+    return Response.json({rows:[{id:'local',external_id:'<promo>',days:30,code_tail:'ABCD',code_revision:0,redeem_before:1800000000,
+      paid_at:1790000000,redeemed_at:null,status:'issued',username:null}],has_next:false,page:1});
+  },
   modulesRoot: serverRoot,
   modules: ["index.js", ...files].map(file => ({ type: "ESModule", path: resolve(serverRoot, file) })),
   compatibilityDate: "2026-05-15", compatibilityFlags: ["nodejs_compat"],
@@ -31,15 +43,30 @@ try {
   await metrics.batch([
     metrics.prepare("CREATE TABLE product_events (event_name TEXT, installation_id TEXT, received_at INTEGER)"),
     metrics.prepare("CREATE TABLE purchase_completed (received_at INTEGER)"),
-    metrics.prepare("CREATE TABLE users (created INTEGER, email_verified_at INTEGER, registration_country TEXT, registration_region TEXT)"),
+    metrics.prepare("CREATE TABLE users (id TEXT PRIMARY KEY, username TEXT, created INTEGER, email_verified_at INTEGER, registration_country TEXT, registration_region TEXT)"),
   ]);
   await metrics.batch([
     metrics.prepare(`INSERT INTO product_events VALUES
       ('app_open','install-a',unixepoch()),('conversion_completed','install-a',unixepoch()),
       ('conversion_failed','install-a',unixepoch()),('app_open','install-b',unixepoch()-172800)`),
     metrics.prepare("INSERT INTO purchase_completed VALUES(unixepoch())"),
-    metrics.prepare("INSERT INTO users VALUES(unixepoch(),unixepoch(),'JP','Tokyo'),(unixepoch()-172800,NULL,NULL,NULL)"),
+    metrics.prepare(`INSERT INTO users VALUES
+      ('new','<reader>',unixepoch(),unixepoch(),'JP','Tokyo'),
+      ('old','legacy@example.test',unixepoch()-172800,NULL,NULL,NULL)`),
   ]);
+  assert.equal((await worker.dispatchFetch(url+'/admin/codes')).status,401);
+  const codesResponse=await worker.dispatchFetch(url+'/admin/codes',{headers:{Authorization:auth}});
+  assert.equal(codesResponse.status,200);
+  assert.equal(codesResponse.headers.get('Referrer-Policy'),'same-origin');
+  assert.match(codesResponse.headers.get('Content-Security-Policy'), /form-action 'self'/);
+  const codesHtml=await codesResponse.text();assert.match(codesHtml,/生成兑换码/);assert.match(codesHtml,/&lt;promo&gt;/);
+  const codeForm={method:'POST',headers:{Authorization:auth,Origin:url,'Content-Type':'application/x-www-form-urlencoded'},
+    body:'action=issue&reference=book2AudioGoPERFORMANCE&days=7&confirm=yes'};
+  assert.equal((await worker.dispatchFetch(url+'/admin/codes',{...codeForm,headers:{...codeForm.headers,Origin:'https://evil.test'}})).status,403);
+  const generated=await worker.dispatchFetch(url+'/admin/codes',codeForm);
+  assert.equal(generated.status,200);assert.match(await generated.text(),/B2A-TEST-ONLY-CODE/);
+  assert.equal((await worker.dispatchFetch(url+'/admin/codes',{...codeForm,body:'action=issue'})).status,400);
+  assert.equal((await worker.dispatchFetch(url+'/admin/codes',{...codeForm,body:'x'.repeat(5000)})).status,400);
   const html = await (await worker.dispatchFetch(url + "/")).text();
   assert.match(html, /feedbackLauncher/);
   assert.match(html, /<dialog/);
@@ -50,20 +77,42 @@ try {
   const downloads = url + "/download/windows";
   const report = url + "/admin/downloads";
   assert.equal((await worker.dispatchFetch(report)).status, 401);
+  assert.equal((await worker.dispatchFetch(report + "?users=1")).status, 401);
   assert.equal((await worker.dispatchFetch(downloads, { method: "POST", redirect: "manual" })).status, 405);
   for (const options of [{ method: "HEAD" }, { headers: { "Sec-Purpose": "prefetch" } }, {}, {}]) {
     options.headers = { ...options.headers, "CF-Connecting-IP": "192.0.2.33" };
     const response = await worker.dispatchFetch(downloads, { ...options, redirect: "manual" });
     assert.equal(response.status, 302);
     assert.equal(response.headers.get("Cache-Control"), "no-store");
-    assert.match(response.headers.get("Location"), /\/Book2AudioGo-1\.2\.0-windows-x64-setup\.exe$/);
+    const target = new URL(response.headers.get("Location"));
+    assert.equal(target.origin, "https://downloads.book2audiogo.com");
+    assert.match(target.pathname, /\/Book2AudioGo-1\.2\.0-windows-x64-setup\.exe$/);
   }
-  const downloadReport = async (days = 30) => {
-    const response = await worker.dispatchFetch(report + "?days=" + days, { headers: { Authorization: auth } });
+  const downloadReport = async (days = 30, users = "") => {
+    const response = await worker.dispatchFetch(report + "?days=" + days + users, { headers: { Authorization: auth } });
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("Cache-Control"), "no-store");
     return response.text();
   };
+  assert.equal((await worker.dispatchFetch(report + "?visitors=1")).status, 401);
+  const visit = (path, ip, extra = {}) => worker.dispatchFetch(url + path, {
+    headers: { Accept: "text/html", "User-Agent": "Mozilla/5.0", "CF-Connecting-IP": ip, ...extra },
+  });
+  await (await visit("/?lang=en", "192.0.2.40")).text();
+  await (await visit("/updates?lang=zh", "192.0.2.40")).text();
+  await (await visit("/epub-to-mp3", "192.0.2.41")).text();
+  await (await visit("/", "192.0.2.42", { "Sec-Purpose": "prefetch" })).text();
+  await (await visit("/", "192.0.2.43", { "User-Agent": "Googlebot" })).text();
+  let visitorDetails;
+  for (let i = 0; i < 20; i++) {
+    visitorDetails = await downloadReport(7, "&visitors=1");
+    if (/<td>\/<\/td><td>2<\/td>/.test(visitorDetails) && visitorDetails.includes("<td>/epub-to-mp3</td>")) break;
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+  assert.match(visitorDetails, /visitors=1#website-visitors"[^>]*>2<\/a>/);
+  assert.match(visitorDetails, /<td>\/<\/td><td>2<\/td>/);
+  assert.match(visitorDetails, /<td>\/epub-to-mp3<\/td><td>1<\/td>/);
+  assert.doesNotMatch(visitorDetails, /192\.0\.2\.4[0-3]/);
   for (let i = 0; i < 20; i++) {
     if ((await downloadReport()).includes("累计 <strong>2</strong>")) break;
     await new Promise(resolve => setTimeout(resolve, 25));
@@ -76,10 +125,21 @@ try {
   assert.match(await downloadReport(7), /活跃安装<\/dt><dd>2/);
   assert.match(await downloadReport(), /失败率<\/dt><dd>50\.0%/);
   assert.match(await downloadReport(), /正式付款订单<\/dt><dd>1/);
-  assert.match(await downloadReport(1), /当前注册总数<\/dt><dd>2/);
+  assert.match(await downloadReport(1), /当前注册总数<\/dt><dd><a href="\?days=1&amp;users=1#registered-users"[^>]*>2<\/a>/);
   assert.match(await downloadReport(1), /所选周期新增<\/dt><dd>1/);
   assert.match(await downloadReport(7), /所选周期新增<\/dt><dd>2/);
   assert.match(await downloadReport(), /<td>未知<\/td>\s*<td>—<\/td><td>1<\/td>/);
+  assert.doesNotMatch(await downloadReport(), /注册用户名|&lt;reader&gt;/);
+  const userDetails = await downloadReport(1, "&users=1");
+  assert.match(userDetails, /<li>&lt;reader&gt;<\/li>\s*<li>l\*\*\*（旧邮箱账号）<\/li>/);
+  assert.doesNotMatch(userDetails, /legacy@example\.test|<reader>/);
+  await metrics.prepare(`WITH RECURSIVE n(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM n WHERE i<25)
+    INSERT INTO users SELECT 'extra-'||i,'reader-'||i,unixepoch()-259200-i,NULL,NULL,NULL FROM n`).run();
+  assert.match(await downloadReport(1, "&users=1"), /users=2#registered-users">下一页/);
+  const nextUserPage = await downloadReport(1, "&users=2");
+  assert.match(nextUserPage, /<li>reader-24<\/li><li>reader-25<\/li>/);
+  assert.match(nextUserPage, /users=1#registered-users">上一页/);
+  assert.doesNotMatch(nextUserPage, /&lt;reader&gt;|下一页/);
   assert.equal((await post(payload, { Origin: "https://evil.example" })).status, 403);
   assert.equal((await post({ ...payload, message: "x" })).status, 400);
   assert.equal((await post({ ...payload, email: "invalid" })).status, 400);

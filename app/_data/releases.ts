@@ -1,5 +1,5 @@
 import { htmlLang, type Lang } from "./languages";
-export const RELEASE_DATE = "2026-11-10";
+export const RELEASE_DATE = "2026-11-11";
 export const DOWNLOAD_URL = "/download/windows";
 export const releaseDate = (lang: Lang) =>
   new Intl.DateTimeFormat(htmlLang(lang), { dateStyle: "medium", timeZone: "UTC" }).format(new Date(RELEASE_DATE));
@@ -15,7 +15,7 @@ type ReleaseCopy = {
 export const releaseCopy: Record<Lang, ReleaseCopy> = {
   fr: {
     nav: "Mises à jour", badge: "Mise à jour Windows", noticeTitle: "La version 1.2.0 est disponible",
-    noticeBody: "Version publiée le 10 novembre 2026. Téléchargez le programme d’installation complet pour Windows.",
+    noticeBody: "Version publiée le 11 novembre 2026. Téléchargez le programme d’installation complet pour Windows.",
     download: "Télécharger la dernière version Windows", details: "Notes de version et instructions", back: "Retour à l’accueil",
     title: "Notes de version", intro: "Consultez les dernières mises à jour de Book2Audio GO, les problèmes corrigés et la procédure de mise à niveau.",
     releaseTitle: "Book2Audio GO 1.2.0", platform: "Windows 10 / 11 · Installateur 64 bits · environ 59 Mo",
@@ -28,7 +28,7 @@ export const releaseCopy: Record<Lang, ReleaseCopy> = {
   },
   es: {
     nav: "Actualizaciones", badge: "Actualización de Windows", noticeTitle: "La versión 1.2.0 ya está disponible",
-    noticeBody: "Publicada el 10 de noviembre de 2026. Descarga el instalador completo para Windows.",
+    noticeBody: "Publicada el 11 de noviembre de 2026. Descarga el instalador completo para Windows.",
     download: "Descargar la última versión para Windows", details: "Notas y pasos para actualizar", back: "Volver al inicio",
     title: "Notas de la versión", intro: "Consulta las últimas actualizaciones de Book2Audio GO, los problemas corregidos y cómo actualizar desde una versión anterior.",
     releaseTitle: "Book2Audio GO 1.2.0", platform: "Windows 10 / 11 · Instalador de 64 bits · unos 59 MB",
@@ -41,7 +41,7 @@ export const releaseCopy: Record<Lang, ReleaseCopy> = {
   },
   zh: {
     nav: "更新日志", badge: "Windows 更新", noticeTitle: "1.2.0 正式版现已可下载",
-    noticeBody: "2026 年 11 月 10 日发布。下载完整 Windows 安装程序。",
+    noticeBody: "2026 年 11 月 11 日发布。下载完整 Windows 安装程序。",
     download: "下载最新版 Windows 版", details: "查看更新日志与升级方法", back: "返回首页",
     title: "更新日志", intro: "查看 Book2Audio GO 的近期更新、已处理的问题，以及旧版用户的升级方法。",
     releaseTitle: "Book2Audio GO 1.2.0", platform: "Windows 10 / 11 · 64 位安装程序 · 约 59 MB",
@@ -54,7 +54,7 @@ export const releaseCopy: Record<Lang, ReleaseCopy> = {
   },
   en: {
     nav: "Updates", badge: "Windows update", noticeTitle: "Version 1.2.0 is available",
-    noticeBody: "Released November 10, 2026. Download the complete Windows installer.",
+    noticeBody: "Released November 11, 2026. Download the complete Windows installer.",
     download: "Download the latest Windows build", details: "Release notes and upgrade steps", back: "Back to home",
     title: "Release notes", intro: "Recent Book2Audio GO updates, resolved issues and upgrade instructions for existing users.",
     releaseTitle: "Book2Audio GO 1.2.0", platform: "Windows 10 / 11 · 64-bit installer · about 59 MB",
@@ -67,7 +67,7 @@ export const releaseCopy: Record<Lang, ReleaseCopy> = {
   },
   ja: {
     nav: "更新情報", badge: "Windows 版の更新", noticeTitle: "バージョン 1.2.0 を公開しました",
-    noticeBody: "2026年11月10日公開。Windows インストーラーをダウンロードできます。",
+    noticeBody: "2026年11月11日公開。Windows インストーラーをダウンロードできます。",
     download: "最新版 Windows 版をダウンロード", details: "更新内容とアップデート方法", back: "ホームへ戻る",
     title: "更新情報", intro: "Book2Audio GO の最近の更新、対応した問題と、旧版からのアップデート方法をご案内します。",
     releaseTitle: "Book2Audio GO 1.2.0", platform: "Windows 10 / 11 · 64 ビットインストーラー · 約 59 MB",
@@ -80,7 +80,7 @@ export const releaseCopy: Record<Lang, ReleaseCopy> = {
   },
   ko: {
     nav: "업데이트", badge: "Windows 업데이트", noticeTitle: "버전 1.2.0을 다운로드할 수 있습니다",
-    noticeBody: "2026년 11월 10일 출시. Windows 설치 프로그램을 다운로드하세요.",
+    noticeBody: "2026년 11월 11일 출시. Windows 설치 프로그램을 다운로드하세요.",
     download: "최신 Windows 버전 다운로드", details: "업데이트 내용 및 설치 방법", back: "홈으로 돌아가기",
     title: "업데이트 내역", intro: "Book2Audio GO의 최근 업데이트, 해결한 문제 및 기존 사용자의 업데이트 방법을 안내합니다.",
     releaseTitle: "Book2Audio GO 1.2.0", platform: "Windows 10 / 11 · 64비트 설치 프로그램 · 약 59 MB",

@@ -104,3 +104,6 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+
+兑换码管理：`/admin/codes`，从统计总览导航进入，沿用后台管理员账号。生成、查询、补发、作废调用已有账号 Worker（10 秒超时），不把 token pepper、签名密钥暴露给官网客户端。写操作需同源表单并勾选确认，完整新码只在当次页面显示。依赖账号服务 D1 `0012_redemption_admin.sql`、`0013_cancelled_code_refunds.sql` 及 `B2A_ADMIN_KEY_HASH` 与官网凭证摘要一致。先部署账号服务，再发布官网。生成的是现有的限期 PRO 码，非永久授权或支付确认。

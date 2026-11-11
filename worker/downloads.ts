@@ -1,9 +1,10 @@
 import { DurableObject } from "cloudflare:workers";
+import { RELEASE_DATE } from "../app/_data/releases";
 import { hasAdminAccess } from "./admin-auth";
-import { productMetrics, registrationMetrics } from "./product-metrics";
+import { productMetrics, registrationMetrics, registrationUsernames } from "./product-metrics";
 
 const VERSION = "1.2.0";
-const FILE_URL = "https://pub-f257fbbebf604ed69c35001d3c3ea070.r2.dev/releases/2026-11-10/Book2AudioGo-1.2.0-windows-x64-setup.exe";
+const FILE_URL = `https://downloads.book2audiogo.com/releases/${RELEASE_DATE}/Book2AudioGo-${VERSION}-windows-x64-setup.exe`;
 const NO_STORE = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
 const DAY = 86400000;
 const UTC_OFFSET = 8 * 3600000;
@@ -16,6 +17,31 @@ export interface DownloadEnv {
   DOWNLOAD_STATS?: DurableObjectNamespace<DownloadStats>;
   FEEDBACK_ADMIN_KEY_HASH?: string;
   ACCOUNT_ANALYTICS?: D1Database;
+}
+
+const websitePages = new Set(["/", "/updates", "/epub-to-mp3", "/pdf-to-audiobook", "/account", "/purchase"]);
+const beijingTime = (time: number) => new Date(time + UTC_OFFSET).toISOString().slice(11, 19);
+
+export function recordWebsiteVisit(request: Request, response: Response, env: DownloadEnv, ctx: { waitUntil(promise: Promise<unknown>): void }) {
+  const { pathname, hostname } = new URL(request.url);
+  if (!env.DOWNLOAD_STATS || hostname !== "book2audiogo.com" || !websitePages.has(pathname)) return;
+  if (request.method !== "GET" || response.status !== 200 || !response.headers.get("Content-Type")?.includes("text/html")) return;
+  const headers = request.headers;
+  const destination = headers.get("Sec-Fetch-Dest");
+  if (!headers.get("Accept")?.includes("text/html") || (destination && destination !== "document")) return;
+  if (/prefetch|prerender/i.test([headers.get("Sec-Purpose"), headers.get("Purpose")].join(" "))) return;
+  const agent = headers.get("User-Agent") ?? "";
+  if (!agent || /bot|crawler|spider|slurp|headless|preview/i.test(agent)) return;
+  const ip = headers.get("CF-Connecting-IPv6") ?? headers.get("CF-Connecting-IP");
+  if (!ip || !/^[0-9a-f:.]{3,45}$/i.test(ip)) return;
+  const country = request.cf?.country;
+  const region = request.cf?.region;
+  ctx.waitUntil(env.DOWNLOAD_STATS.getByName("website").recordVisit(
+    pathname,
+    typeof country === "string" && /^[A-Z]{2}$/.test(country) && country !== "XX" ? country : "",
+    typeof region === "string" ? region.trim().slice(0, 80) : "",
+    ip.toLowerCase(),
+  ).catch(() => console.warn("website_visit_write_failed")));
 }
 
 export async function downloadRoute(request: Request, env: DownloadEnv, ctx: { waitUntil(promise: Promise<unknown>): void }) {
@@ -49,12 +75,31 @@ export async function downloadRoute(request: Request, env: DownloadEnv, ctx: { w
   try {
     const selected = Number(searchParams.get("days"));
     const range = [1, 7, 30].includes(selected) ? selected : 30;
+    const showUsers = searchParams.has("users");
+    const selectedPage = Number(searchParams.get("users"));
+    const userPage = Number.isSafeInteger(selectedPage) && selectedPage >= 1 && selectedPage <= 1000000 ? selectedPage : 1;
     const { today, totals, days, regions, tracked } = await env.DOWNLOAD_STATS.getByName("windows").report(range, VERSION);
     const db = env.ACCOUNT_ANALYTICS;
-    const [metrics, registrations] = await Promise.all([
+    const showVisitors = searchParams.has("visitors");
+    const requestedVisitorPage = Number(searchParams.get("visitors"));
+    const visitorPage = Number.isSafeInteger(requestedVisitorPage) && requestedVisitorPage >= 1 && requestedVisitorPage <= 1000000
+      ? requestedVisitorPage : 1;
+    const [metrics, registrations, users, visitors] = await Promise.all([
       db ? productMetrics(db, today, range).catch(() => null) : null,
       db ? registrationMetrics(db, today, range).catch(() => null) : null,
+      db && showUsers ? registrationUsernames(db, userPage).catch(() => null) : null,
+      env.DOWNLOAD_STATS.getByName("website").visitReport(today, showVisitors ? visitorPage : null).catch(() => null),
     ]);
+    const visitorLink = (page: number) => `?days=${range}&amp;visitors=${page}#website-visitors`;
+    const visitorRows = visitors?.rows.map(row => `<tr>
+<td>${escapeHtml(row.country ? countryNames.of(row.country) ?? row.country : "未知")} / ${escapeHtml(row.region || "—")}</td>
+<td>${beijingTime(row.first_seen)}</td><td>${beijingTime(row.last_seen)}</td>
+<td>${escapeHtml(row.first_page)}</td><td>${row.page_views}</td></tr>`).join("");
+    const visitorDetails = showVisitors && visitors ? `<p><a href="?days=${range}#website-visitors">收起明细</a></p>
+<table><thead><tr><th scope="col">来源地区</th><th scope="col">首次访问</th><th scope="col">最近访问</th><th scope="col">入口页面</th><th scope="col">浏览次数</th></tr></thead>
+<tbody>${visitorRows || '<tr><td colspan="5">本页暂无访客记录</td></tr>'}</tbody></table>
+<nav aria-label="访客明细分页">${visitorPage > 1 ? `<a href="${visitorLink(visitorPage - 1)}">上一页</a>` : ""}
+<span>第 ${visitorPage} 页</span>${visitors.hasNext ? `<a href="${visitorLink(visitorPage + 1)}">下一页</a>` : ""}</nav>` : "";
     const current = totals.find(row => row.version === VERSION);
     const rows = days.map(row => `<tr><td>${row.day}</td><td>${row.version}</td><td>${row.count}</td><td>${row.unique_ips ?? "—"}</td></tr>`).join("");
     const geoRows = regions.map(row => `<tr><td>${escapeHtml(row.country ? countryNames.of(row.country) ?? row.country : "未知")}</td>
@@ -62,6 +107,14 @@ export async function downloadRoute(request: Request, env: DownloadEnv, ctx: { w
     const registrationRows = registrations?.regions.map(row =>
       `<tr><td>${escapeHtml(row.country ? countryNames.of(row.country) ?? row.country : "未知")}</td>
 <td>${escapeHtml(row.region || "—")}</td><td>${row.count}</td></tr>`).join("");
+    const userLink = (page: number) => `?days=${range}&amp;users=${page}#registered-users`;
+    const usernames = showUsers ? `<div id="registered-users"><h3>注册用户名</h3>
+<p><a href="?days=${range}#registration">收起名单</a></p>
+${users ? `<ul>${users.usernames.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
+${users.usernames.length ? "" : "<p>本页暂无用户名。</p>"}
+<nav aria-label="用户名分页">${userPage > 1 ? `<a href="${userLink(userPage - 1)}">上一页</a>` : ""}
+<span>第 ${userPage} 页</span>${users.hasNext ? `<a href="${userLink(userPage + 1)}">下一页</a>` : ""}</nav>` :
+'<p>用户名暂不可用，请稍后刷新。</p>'}</div>` : "";
     const rangeNav = [1, 7, 30].map(n => `<a href="?days=${n}"${range === n ? ' aria-current="page"' : ''}>${n === 1 ? "今天" : "最近 " + n + " 天"}</a>`).join("");
     const cards = (labels: [string, string][]) => labels.map(([label, key]) =>
       `<div><dt>${label}</dt><dd>${metrics?.[key] ?? 0}</dd></div>`).join("");
@@ -70,15 +123,21 @@ export async function downloadRoute(request: Request, env: DownloadEnv, ctx: { w
     return new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Book2Audio GO 下载统计</title>
 <style>body{margin:0;background:#f4f0e6;color:#152f3a;font:16px system-ui,sans-serif}main{max-width:900px;margin:32px auto;padding:0 20px}section{background:#fffdf8;border:1px solid #ddd9ce;border-radius:16px;padding:20px;margin:16px 0;overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:10px 6px;border-bottom:1px solid #e6e0d5}a{color:#064f55}nav{display:flex;gap:16px;flex-wrap:wrap}nav a[aria-current]{font-weight:700}dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}dd{margin:4px 0 0;font-weight:700;font-size:1.25rem}</style>
 <main><h1>Windows 下载统计</h1><p>版本 ${VERSION} · 北京时间 ${today}</p>
+<nav aria-label="管理导航"><a href="/admin/downloads">统计总览</a><a href="/admin/codes">兑换码管理</a><a href="/admin/feedback">用户反馈</a></nav>
 <nav aria-label="统计周期">${rangeNav}</nav>
-${registrations ? `<section><h2>注册用户</h2>
-<dl><div><dt>当前注册总数</dt><dd>${registrations.totals.total}</dd></div>
+<section id="website-visitors"><h2>今日网站访客数</h2>
+${visitors ? `<dl><div><dt>去重访客</dt><dd><a href="${visitorLink(1)}" aria-label="查看今日 ${visitors.total} 位访客的明细">${visitors.total}</a></dd></div></dl>` : "<p>访客统计暂不可用，请稍后刷新。</p>"}
+<p>按北京时间和访问 IP 去重，同一网络的多人可能合计为一位访客。仅显示当天明细。</p>
+${visitorDetails}</section>
+${registrations ? `<section id="registration"><h2>注册用户</h2>
+<dl><div><dt>当前注册总数</dt><dd><a href="${userLink(1)}" aria-label="查看 ${registrations.totals.total} 个注册账号的用户名">${registrations.totals.total}</a></dd></div>
 <div><dt>已验证邮箱</dt><dd>${registrations.totals.verified}</dd></div>
 <div><dt>所选周期新增</dt><dd>${registrations.totals.added}</dd></div></dl>
+${usernames}
 <h3>全部账号的注册来源</h3><p>地区取自注册时的网络出口。历史未记录或无法识别的来源显示为未知。</p>
 <table><thead><tr><th scope="col">国家或地区</th><th scope="col">省州</th><th scope="col">账号数</th></tr></thead>
 <tbody>${registrationRows || '<tr><td colspan="3">暂无注册记录</td></tr>'}</tbody></table></section>` :
-'<section><h2>注册用户</h2><p>注册统计暂不可用，请稍后刷新。</p></section>'}
+`<section id="registration"><h2>注册用户</h2><p>注册统计暂不可用，请稍后刷新。</p>${usernames}</section>`}
 <section><h2>当前版本</h2><p>今天 <strong>${current?.today ?? 0}</strong> 次 · 累计 <strong>${current?.total ?? 0}</strong> 次</p>
 <p>统计官网统一入口发起的下载。重复点击会分别计数。</p></section>
 <section><h2>下载明细</h2><table><thead><tr><th scope="col">日期</th><th scope="col">版本</th><th scope="col">次数</th><th scope="col">去重 IP</th></tr></thead>
@@ -111,7 +170,37 @@ export class DownloadStats extends DurableObject<DownloadEnv> {
       CREATE TABLE IF NOT EXISTS download_ip_keys (day TEXT PRIMARY KEY, secret TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS download_ips (
         day TEXT NOT NULL, version TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(day, version, digest)
+      );
+      CREATE TABLE IF NOT EXISTS website_visitors (
+        day TEXT NOT NULL, digest TEXT NOT NULL, country TEXT NOT NULL, region TEXT NOT NULL,
+        first_page TEXT NOT NULL, first_seen INTEGER NOT NULL, last_seen INTEGER NOT NULL,
+        page_views INTEGER NOT NULL, PRIMARY KEY(day, digest)
       );`);
+  }
+
+  async recordVisit(path: string, country: string, region: string, ip: string) {
+    const now = Date.now();
+    const day = beijingDay(now);
+    const digest = await this.dailyIpDigest(ip, day, now);
+    if (!digest || day !== beijingDay()) return;
+    this.ctx.storage.sql.exec(`INSERT INTO website_visitors VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+      ON CONFLICT(day, digest) DO UPDATE SET
+        first_page = CASE WHEN excluded.first_seen < first_seen THEN excluded.first_page ELSE first_page END,
+        country = CASE WHEN excluded.first_seen < first_seen THEN excluded.country ELSE country END,
+        region = CASE WHEN excluded.first_seen < first_seen THEN excluded.region ELSE region END,
+        first_seen = MIN(first_seen, excluded.first_seen),
+        last_seen = MAX(last_seen, excluded.last_seen),
+        page_views = page_views + 1`, day, digest, country, region, path, now, now);
+  }
+
+  visitReport(day: string, page: number | null) {
+    const sql = this.ctx.storage.sql;
+    const { total } = sql.exec<{ total: number }>("SELECT COUNT(*) AS total FROM website_visitors WHERE day = ?", day).one();
+    const rows = page === null ? [] : sql.exec<{
+      country: string; region: string; first_page: string; first_seen: number; last_seen: number; page_views: number;
+    }>(`SELECT country, region, first_page, first_seen, last_seen, page_views FROM website_visitors
+      WHERE day = ? ORDER BY first_seen DESC, digest LIMIT 26 OFFSET ?`, day, (page - 1) * 25).toArray();
+    return { total, rows: rows.slice(0, 25), hasNext: rows.length > 25 };
   }
 
   async record(version: string, country: string, region: string, ip: string) {
@@ -151,6 +240,7 @@ export class DownloadStats extends DurableObject<DownloadEnv> {
     const sql = this.ctx.storage.sql;
     const today = beijingDay();
     sql.exec("DELETE FROM download_ips WHERE day < ?", today);
+    sql.exec("DELETE FROM website_visitors WHERE day < ?", today);
     sql.exec("DELETE FROM download_ip_keys WHERE day < ?", today);
   }
 

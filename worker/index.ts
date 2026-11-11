@@ -4,7 +4,8 @@ import handler from "vinext/server/app-router-entry";
 import { feedbackRoute, type FeedbackEnv } from "./feedback";
 import { paddleRoute, sandboxEnabled, type PaddleEnv } from "./paddle";
 import { accountRoute } from "./account";
-import { downloadRoute, type DownloadEnv } from "./downloads";
+import { downloadRoute, recordWebsiteVisit, type DownloadEnv } from "./downloads";
+import { adminCodesRoute } from "./admin-codes";
 import { isLang } from "../app/_data/languages";
 export { FeedbackInbox } from "./feedback";
 export { PaddleTestOrders } from "./paddle";
@@ -50,6 +51,8 @@ const worker = {
       url.hostname = "book2audiogo.com";
       return Response.redirect(url.toString(), 301);
     }
+    const codes = await adminCodesRoute(request, env);
+    if (codes) return codes;
     const download = await downloadRoute(request, env, ctx);
     if (download) return download;
     const account = await accountRoute(request, env.ACCOUNT_ANALYTICS, ctx);
@@ -67,6 +70,7 @@ const worker = {
       }, allowedWidths);
     }
     const result = await render();
+    recordWebsiteVisit(request, result, env, ctx);
     if (url.pathname !== "/purchase" && url.pathname !== "/account") return result;
     const response = new Response(result.body, result);
     response.headers.set("Cache-Control", "no-store");
