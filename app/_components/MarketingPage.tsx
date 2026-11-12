@@ -1,3 +1,4 @@
+import WorkflowSteps from "./WorkflowSteps";
 import Home, { homeCopy } from "./Home";
 import ConversionGuide from "./ConversionGuide";
 import DiscoveryContent from "./DiscoveryContent";
@@ -48,7 +49,7 @@ export default function MarketingPage({ lang, path }: { lang: Lang; path: Market
         <p>{more.useCases}</p>
       </>}
       {path === "/how-it-works" && <>
-        <ol className="guideSteps">{copy.steps.map(([number, label, text]) => <li key={number}><h2>{label}</h2><p>{text}</p></li>)}</ol>
+        <WorkflowSteps lang={lang} steps={copy.steps} />
         <p><a className="guideLink" href="/guides/itunes-apple-music" hrefLang="zh-CN">{more.related} →</a></p>
       </>}
       {path === "/formats" && <>

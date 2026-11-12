@@ -41,12 +41,24 @@
 .featureSummaryGrid h3,.featureSummaryGrid h2{font-size:19px;line-height:1.35;margin:0 0 9px}
 .featureSummaryGrid p{margin:0;line-height:1.65}
 .workflowSummary{background:#dcebe1;padding:46px 0}
-.workflowSummary ol{padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;list-style:none;margin:24px 0}
-.workflowSummary li{padding:14px;background:#f8f5eb;border-radius:6px;display:flex;align-items:baseline;gap:12px}
-.workflowSummary li b{color:#195b57;font:700 13px monospace}
 .detailNav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:25px}
 .marketingDetail .guideSteps h2{font-size:20px;margin:0 0 7px}
 @media(max-width:880px){.cyclingContent>p:not(.formatPill){max-width:49%}.nav:has(.marketingLanguages){height:auto;min-height:70px;gap:12px;padding:12px 0}.featureSummaryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:640px){.cyclingImage{inset:0 0 auto;height:260px;background-position:center 8%;mask-image:linear-gradient(#000 55%,transparent)}.cyclingContent{padding-top:200px;padding-bottom:35px;min-height:auto}.cyclingContent>p:not(.formatPill){max-width:100%}.featureSummaryGrid,.workflowSummary ol{grid-template-columns:1fr}.featureSummary{padding:48px 0}.marketingLanguages a{padding:4px}.nav:has(.marketingLanguages) .accountNavControls{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:640px){.cyclingImage{inset:0 0 auto;height:260px;background-position:center 8%;mask-image:linear-gradient(#000 55%,transparent)}.cyclingContent{padding-top:200px;padding-bottom:35px;min-height:auto}.cyclingContent>p:not(.formatPill){max-width:100%}.featureSummaryGrid{grid-template-columns:1fr}.featureSummary{padding:48px 0}.marketingLanguages a{padding:4px}.nav:has(.marketingLanguages) .accountNavControls{flex-wrap:wrap;justify-content:flex-end}}
 
 .workflowLinks{display:flex;gap:12px 24px;flex-wrap:wrap}
+
+.workflowCards{display:grid;gap:20px;list-style:none;margin:24px 0;padding:0}
+.workflowCardsSummary{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
+.workflowCards>li{min-width:0;padding:18px;background:#f8f5eb;border:1px solid #21555124;border-radius:9px}
+.workflowStepNumber{color:#195b57;font:700 13px monospace}
+.workflowStepText h2,.workflowStepText h3{font-size:20px;line-height:1.3;margin:5px 0 8px}
+.workflowStepText p{color:#40585f;line-height:1.6;margin:0 0 15px}
+.workflowScreens{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.workflowScreens>figure{margin:0;min-width:0}
+.workflowScreens>figure:only-child{grid-column:1/-1}
+.workflowScreens a{display:block;border:1px solid #21555130;border-radius:5px;overflow:hidden;background:#e4e9e1}
+.workflowScreens img{display:block;width:100%;height:auto}
+.workflowScreens figcaption{color:#40585f;font-size:13px;line-height:1.45;margin-top:6px}
+.workflowCardsSummary .workflowScreens{grid-template-columns:1fr}
+@media(max-width:720px){.workflowCardsSummary,.workflowScreens{grid-template-columns:1fr}}
