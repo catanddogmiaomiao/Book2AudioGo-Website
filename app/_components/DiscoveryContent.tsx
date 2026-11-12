@@ -1,11 +1,7 @@
-"use client";
-
 import { guideText } from "../_data/guide-copy";
-import { localizedHref } from "../_data/languages";
-import { useLanguage } from "./Language";
+import { localizedHref, type Lang } from "../_data/languages";
 
-export default function DiscoveryContent() {
-  const lang = useLanguage();
+export default function DiscoveryContent({ lang }: { lang: Lang }) {
   const t = (key: Parameters<typeof guideText>[1]) => guideText(lang, key);
   const guides = [
     ["/pdf-to-audiobook", "PDF to audio and MP3", "Convert a text-based PDF to audiobook audio. Check the extracted reading order, choose the sections you need and export them for listening.", "How to convert a PDF to audio"],

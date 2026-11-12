@@ -18,9 +18,27 @@ export function localize<K extends string>(copy: Record<K, Translations>) {
   };
 }
 
+export const marketingPaths = ["/", "/features", "/how-it-works", "/formats", "/pdf-to-audiobook", "/epub-to-mp3"] as const;
+export type MarketingPath = (typeof marketingPaths)[number];
+export function isMarketingPath(value: string): value is MarketingPath {
+  return marketingPaths.some(path => path === value);
+}
+
+export function marketingRoute(pathname: string): { lang: Lang; path: MarketingPath } | undefined {
+  const normalized = pathname.replace(/\/$/, "") || "/";
+  const [, first, ...rest] = normalized.split("/");
+  const path = isLang(first) ? "/" + rest.join("/") : normalized;
+  if (isMarketingPath(path)) return { lang: isLang(first) ? first : "en", path };
+}
+
 export function localizedHref(path: string, lang: Lang) {
   const url = new URL(path, "https://book2audiogo.com");
-  if (lang !== "en") url.searchParams.set("lang", lang);
+  if (isMarketingPath(url.pathname)) {
+    url.searchParams.delete("lang");
+    if (lang !== "en") url.pathname = "/" + lang + (url.pathname === "/" ? "" : url.pathname);
+  } else if (lang !== "en") {
+    url.searchParams.set("lang", lang);
+  }
   return url.pathname + url.search + url.hash;
 }
 

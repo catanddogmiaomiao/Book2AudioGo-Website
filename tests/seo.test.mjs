@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Miniflare } from "miniflare";
 
@@ -75,7 +75,27 @@ try {
   assert.match(sitemap.headers.get("content-type"), /xml/);
   const xml = await sitemap.text();
   assert.match(xml, /xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9"/);
-  assert.deepEqual([...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => m[1]), ["https://book2audiogo.com/", "https://book2audiogo.com/pdf-to-audiobook", "https://book2audiogo.com/epub-to-mp3", "https://book2audiogo.com/updates"]);
+  const listed = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => new URL(m[1]).pathname);
+  const marketingPaths = ["/", "/features", "/how-it-works", "/formats", "/pdf-to-audiobook", "/epub-to-mp3"];
+  for (const lang of ["en", "zh", "ja", "ko", "fr", "es"]) {
+    for (const route of marketingPaths) {
+      const path = lang === "en" ? route : "/" + lang + (route === "/" ? "" : route);
+      assert.ok(listed.includes(path), "Missing from sitemap: " + path);
+      const result = await worker.dispatchFetch("https://book2audiogo.com" + path);
+      assert.equal(result.status, 200, path);
+      const body = await result.text();
+      const artifact = await readFile("dist/client/_marketing" + (path === "/" ? "/home" : path) + ".html", "utf8");
+      assert.equal(body, artifact, "Must serve pre-rendered HTML: " + path);
+      assert.ok(body.includes(`<html lang="${lang === "zh" ? "zh-CN" : lang}">`), path);
+      assert.match(body, /hreflang="x-default"/i);
+      const preferred = body.match(/<link rel="canonical" href="([^"]+)"/);
+      assert.equal(new URL(preferred[1]).pathname, path);
+      assert.doesNotMatch(body, /<meta[^>]+content="[^"]*noindex/i);
+    }
+  }
+  const tutorial = await worker.dispatchFetch("https://book2audiogo.com/guides/itunes-apple-music");
+  assert.equal(tutorial.status, 200);
+  assert.match(await tutorial.text(), /Open Audio Folder/);
 
   const robots = await worker.dispatchFetch("https://book2audiogo.com/robots.txt");
   assert.equal(robots.status, 200);
@@ -102,21 +122,26 @@ try {
   for (const [lang, headings] of Object.entries(localizedHeadings)) {
     const paths = ["/", "/updates", "/pdf-to-audiobook", "/epub-to-mp3", "/account"];
     for (const [index, path] of paths.entries()) {
-      const page = await worker.dispatchFetch(`https://book2audiogo.com${path}?lang=${lang}`);
+      const marketing = marketingPaths.includes(path);
+      const localized = lang === "en" ? path : "/" + lang + (path === "/" ? "" : path);
+      const page = await worker.dispatchFetch("https://book2audiogo.com" + (marketing ? localized : path + "?lang=" + lang));
       assert.equal(page.status, 200, `${path} ${lang}`);
       const body = await page.text();
       assert.ok(body.includes(`<html lang="${lang === "zh" ? "zh-CN" : lang}">`), `${path} document language ${lang}`);
       assert.ok(body.match(/<h1>(.*?)<\/h1>/s)?.[1].includes(headings[index]), `${path} heading ${lang}`);
       assert.ok(body.includes(headings[5]), `${path} feedback language ${lang}`);
-      for (const option of Object.keys(localizedHeadings)) assert.ok(body.includes(`value="${option}"`));
+      if (!marketing) for (const option of Object.keys(localizedHeadings)) assert.ok(body.includes(`value="${option}"`));
       if (index < 4) assert.match(body, /hreflang="fr"/i);
-      if (path === "/" && lang !== "en") assert.ok(body.includes(`href="/epub-to-mp3?lang=${lang}"`));
+      if (path === "/" && lang !== "en") assert.ok(body.includes(`href="/${lang}/epub-to-mp3"`));
     }
   }
   for (const [mode, heading] of [["recover", "Mot de passe oublié"], ["reset", "Réinitialiser le mot de passe"]]) {
     const page = await worker.dispatchFetch(`https://book2audiogo.com/account?lang=fr&mode=${mode}`);
     assert.ok((await page.text()).includes(`<h2>${heading}</h2>`));
   }
+  const oldURL = await worker.dispatchFetch("https://book2audiogo.com/pdf-to-audiobook?lang=zh&utm_source=test", { redirect: "manual" });
+  assert.equal(oldURL.status, 301);
+  assert.equal(oldURL.headers.get("location"), "https://book2audiogo.com/zh/pdf-to-audiobook?utm_source=test");
   const missing = await worker.dispatchFetch("https://book2audiogo.com/missing-test-page?lang=es");
   assert.equal(missing.status, 404);
   assert.match(await missing.text(), /Página no encontrada/);

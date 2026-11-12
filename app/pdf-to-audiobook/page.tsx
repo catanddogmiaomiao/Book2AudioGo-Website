@@ -1,6 +1,4 @@
 import ConversionGuide from "../_components/ConversionGuide";
 import { guideMetadata } from "../_data/conversion-guides";
-import { requestLanguage } from "../_data/request-language";
-
-export async function generateMetadata() { return guideMetadata("pdf", await requestLanguage()); }
-export default function Page() { return <ConversionGuide kind="pdf" />; }
+export const metadata = guideMetadata("pdf", "en");
+export default function Page() { return <ConversionGuide kind="pdf" lang="en" />; }

@@ -1,17 +1,14 @@
-"use client";
-
 import { getGuide, type GuideKind } from "../_data/conversion-guides";
 import { guideText } from "../_data/guide-copy";
-import { localizedHref } from "../_data/languages";
+import { localizedHref, type Lang, type MarketingPath } from "../_data/languages";
 import { DOWNLOAD_URL as download } from "../_data/releases";
-import { LanguageMenu, useLanguage } from "./Language";
+import { MarketingLanguages } from "./MarketingNavigation";
 
-export default function ConversionGuide({ kind }: { kind: GuideKind }) {
-  const lang = useLanguage();
+export default function ConversionGuide({ kind, lang }: { kind: GuideKind; lang: Lang }) {
   const guide = getGuide(kind, lang);
   const t = (key: Parameters<typeof guideText>[1]) => guideText(lang, key);
   return <main>
-    <nav className="nav wrap"><a className="brand" href={localizedHref("/", lang)}><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="accountNavControls"><a className="guideLink" href={localizedHref("/", lang)}>{t("Home")}</a><LanguageMenu /></div></nav>
+    <nav className="nav wrap"><a className="brand" href={localizedHref("/", lang)}><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></a><div className="accountNavControls"><a className="guideLink" href={localizedHref("/", lang)}>{t("Home")}</a><MarketingLanguages lang={lang} path={guide.path as MarketingPath} /></div></nav>
     <article className="guidePage wrap">
       <p className="eyebrow">{t("WINDOWS APP · FREE CORE FEATURES")}</p>
       <h1>{guide.h1}</h1><p className="lead">{guide.intro}</p>

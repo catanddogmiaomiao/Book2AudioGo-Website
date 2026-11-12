@@ -6,7 +6,7 @@ import { paddleRoute, sandboxEnabled, type PaddleEnv } from "./paddle";
 import { accountRoute } from "./account";
 import { downloadRoute, recordWebsiteVisit, type DownloadEnv } from "./downloads";
 import { adminCodesRoute } from "./admin-codes";
-import { isLang } from "../app/_data/languages";
+import { isLang, localizedHref, marketingRoute } from "../app/_data/languages";
 export { FeedbackInbox } from "./feedback";
 export { PaddleTestOrders } from "./paddle";
 export { DownloadStats } from "./downloads";
@@ -28,7 +28,9 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    const lang = url.searchParams.get("lang");
+    const marketing = marketingRoute(url.pathname);
+    const legacyLang = url.searchParams.get("lang");
+    const lang = marketing?.lang ?? legacyLang;
     const render = () => {
       const headers = new Headers(request.headers);
       headers.set("x-b2a-locale", isLang(lang) ? lang : "en");
@@ -51,6 +53,20 @@ const worker = {
       url.hostname = "book2audiogo.com";
       return Response.redirect(url.toString(), 301);
     }
+    if (marketing && (request.method === "GET" || request.method === "HEAD")) {
+      const language = url.pathname === marketing.path && isLang(legacyLang) ? legacyLang : marketing.lang;
+      const pathname = localizedHref(marketing.path, language);
+      if (pathname !== url.pathname || url.searchParams.has("lang")) {
+        url.pathname = pathname;
+        url.searchParams.delete("lang");
+        return Response.redirect(url.toString(), 301);
+      }
+    }
+    if ((request.method === "GET" || request.method === "HEAD") &&
+        (url.pathname === "/guides/itunes-apple-music" ||
+         url.pathname.startsWith("/guides/itunes-apple-music/"))) {
+      return env.ASSETS.fetch(request);
+    }
     const codes = await adminCodesRoute(request, env);
     if (codes) return codes;
     const download = await downloadRoute(request, env, ctx);
@@ -69,7 +85,14 @@ const worker = {
         },
       }, allowedWidths);
     }
-    const result = await render();
+    let staticPage: Response | undefined;
+    if (marketing && (request.method === "GET" || request.method === "HEAD") &&
+        !request.headers.has("RSC") && !url.searchParams.has("_rsc")) {
+      const asset = new URL("/_marketing" + (url.pathname === "/" ? "/home" : url.pathname), url);
+      const response = await env.ASSETS.fetch(new Request(asset, { method: request.method }));
+      if (response.ok && response.headers.get("content-type")?.includes("text/html")) staticPage = response;
+    }
+    const result = staticPage ?? await render();
     recordWebsiteVisit(request, result, env, ctx);
     if (url.pathname !== "/purchase" && url.pathname !== "/account") return result;
     const response = new Response(result.body, result);

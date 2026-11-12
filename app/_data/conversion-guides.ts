@@ -61,10 +61,38 @@ export function getGuide(kind: GuideKind, lang: Lang) {
   return lang === "en" ? guides[kind] : { ...guides[kind], ...translatedGuides[lang][kind], description: translatedGuides[lang][kind].intro };
 }
 
+const guideKeywords = {
+  "en": [
+    "PDF to Audio Converter for Windows|Convert PDF to Audio and MP3 Audiobooks|PDF books to MP3 audiobooks|how to convert a PDF to audio|export PDF audio as MP3|convert PDF to audio for free|PDF to audio online tool|adjust the speaking speed|OCR text recognition|PDF to audiobook converter|PDF to MP3 converter for Windows|how to turn a PDF into an audiobook|convert PDF to audio by chapter|how to convert a scanned PDF to audio",
+    "EPUB to MP3 Audiobook Converter|Windows EPUB to MP3 converter|Convert EPUB to MP3 Audiobooks by Chapter|how to convert EPUB to MP3|convert EPUB to MP3 for free|one MP3 per chapter|convert EPUB to audiobook online|voice preview|EPUB to audiobook converter|EPUB to MP3 converter for Windows|how to convert EPUB to audiobook|EPUB to MP3 by chapter"
+  ],
+  "zh": [
+    "Windows PDF 转音频工具|把 PDF 转成音频和 MP3 有声书|PDF 转有声书工具|Windows PDF 转 MP3 工具|如何把 PDF 转成有声书|PDF 按章节转音频|扫描版 PDF 如何转音频",
+    "Windows EPUB 转 MP3 工具|将 EPUB 按章节转换成 MP3 有声书|EPUB 转有声书工具|如何把 EPUB 转成有声书|EPUB 按章节转 MP3"
+  ],
+  "ja": [
+    "Windows 用 PDF 音声変換ソフト|PDF を音声や MP3 オーディオブックに変換|PDF オーディオブック変換ソフト|Windows 用 PDF MP3 変換ソフト|PDF をオーディオブックに変換する方法|PDF を章ごとに音声に変換|スキャンした PDF を音声に変換する方法",
+    "Windows 用 EPUB MP3 変換ソフト|EPUB を章ごとの MP3 オーディオブックに変換|EPUB オーディオブック変換ソフト|EPUB をオーディオブックに変換する方法|EPUB を章ごとに MP3 に変換"
+  ],
+  "ko": [
+    "Windows용 PDF 오디오 변환기|PDF를 오디오와 MP3 오디오북으로 변환|PDF 오디오북 변환기|Windows용 PDF MP3 변환기|PDF를 오디오북으로 변환하는 방법|PDF를 챕터별로 오디오로 변환|스캔한 PDF를 오디오로 변환하는 방법",
+    "Windows용 EPUB MP3 변환기|EPUB를 챕터별 MP3 오디오북으로 변환|EPUB 오디오북 변환기|EPUB를 오디오북으로 변환하는 방법|EPUB를 챕터별로 MP3로 변환"
+  ],
+  "fr": [
+    "Convertisseur PDF en audio pour Windows|Convertir les PDF en audio et en livres audio MP3|convertisseur de PDF en livre audio|convertisseur PDF en MP3 pour Windows|comment convertir un PDF en livre audio|convertir un PDF en audio chapitre par chapitre|comment convertir un PDF numérisé en audio",
+    "Convertisseur EPUB en MP3 pour Windows|Convertir un EPUB en livre audio MP3 par chapitre|convertisseur EPUB en livre audio|comment convertir un EPUB en livre audio|convertir un EPUB en MP3 chapitre par chapitre"
+  ],
+  "es": [
+    "Conversor de PDF a audio para Windows|Convertir PDF en audio y audiolibros MP3|conversor de PDF a audiolibro|conversor de PDF a MP3 para Windows|cómo convertir un PDF en audiolibro|convertir un PDF en audio por capítulos|cómo convertir un PDF escaneado en audio",
+    "Conversor de EPUB a MP3 para Windows|Convertir EPUB en audiolibros MP3 por capítulos|conversor de EPUB a audiolibro|cómo convertir un EPUB en audiolibro|convertir EPUB a MP3 por capítulos"
+  ]
+};
+
 export function guideMetadata(kind: GuideKind, lang: Lang): Metadata {
   const guide = getGuide(kind, lang);
   return {
     title: lang === "en" ? guide.title : guide.title + " | Book2Audio GO", description: guide.description,
+    keywords: guideKeywords[lang][kind === "pdf" ? 0 : 1].split("|"),
     alternates: localeAlternates(guide.path, lang),
     openGraph: { title: guide.title, description: guide.description, url: site + localizedHref(guide.path, lang), siteName: "Book2Audio GO", type: "website", locale: htmlLang(lang).replace("-", "_") },
     twitter: { card: "summary", title: guide.title, description: guide.description },

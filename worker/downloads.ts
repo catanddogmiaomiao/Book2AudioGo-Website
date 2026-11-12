@@ -1,4 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
+import { marketingRoute } from "../app/_data/languages";
 import { RELEASE_DATE } from "../app/_data/releases";
 import { hasAdminAccess } from "./admin-auth";
 import { productMetrics, registrationMetrics, registrationUsernames } from "./product-metrics";
@@ -24,7 +25,7 @@ const beijingTime = (time: number) => new Date(time + UTC_OFFSET).toISOString().
 
 export function recordWebsiteVisit(request: Request, response: Response, env: DownloadEnv, ctx: { waitUntil(promise: Promise<unknown>): void }) {
   const { pathname, hostname } = new URL(request.url);
-  if (!env.DOWNLOAD_STATS || hostname !== "book2audiogo.com" || !websitePages.has(pathname)) return;
+  if (!env.DOWNLOAD_STATS || hostname !== "book2audiogo.com" || !(websitePages.has(pathname) || marketingRoute(pathname))) return;
   if (request.method !== "GET" || response.status !== 200 || !response.headers.get("Content-Type")?.includes("text/html")) return;
   const headers = request.headers;
   const destination = headers.get("Sec-Fetch-Dest");
