@@ -62,7 +62,7 @@ const worker = {
         return Response.redirect(url.toString(), 301);
       }
     }
-    if ((request.method === "GET" || request.method === "HEAD") &&
+    if (env.ASSETS && (request.method === "GET" || request.method === "HEAD") &&
         (url.pathname === "/guides/itunes-apple-music" ||
          url.pathname.startsWith("/guides/itunes-apple-music/"))) {
       return env.ASSETS.fetch(request);
@@ -86,7 +86,7 @@ const worker = {
       }, allowedWidths);
     }
     let staticPage: Response | undefined;
-    if (marketing && (request.method === "GET" || request.method === "HEAD") &&
+    if (env.ASSETS && marketing && (request.method === "GET" || request.method === "HEAD") &&
         !request.headers.has("RSC") && !url.searchParams.has("_rsc")) {
       const asset = new URL("/_marketing" + (url.pathname === "/" ? "/home" : url.pathname), url);
       const response = await env.ASSETS.fetch(new Request(asset, { method: request.method }));

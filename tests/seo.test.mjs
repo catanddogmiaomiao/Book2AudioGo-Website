@@ -5,6 +5,8 @@ import { Miniflare } from "miniflare";
 
 // Exercise the built Cloudflare Worker, not source-string assertions.
 const serverRoot = resolve("dist/server");
+const productionConfig = JSON.parse(await readFile(resolve(serverRoot, "wrangler.json"), "utf8"));
+assert.equal(productionConfig.assets.binding, "ASSETS");
 const files = (await readdir(serverRoot, { recursive: true })).filter(file => /\.(m?js)$/.test(file) && file !== "index.js");
 const worker = new Miniflare({
   modulesRoot: serverRoot,

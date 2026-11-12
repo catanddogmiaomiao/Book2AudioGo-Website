@@ -14,6 +14,7 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
 const localBindingConfig = {
   main: "./worker/index.ts",
+  assets: { binding: "ASSETS" },
   compatibility_flags: ["nodejs_compat"],
   durable_objects: { bindings: [
     { name: "FEEDBACK_INBOX", class_name: "FeedbackInbox" },
