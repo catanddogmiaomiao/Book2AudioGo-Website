@@ -16,6 +16,11 @@ const worker = new Miniflare({
   assets: { directory: resolve("dist/client"), binding: "ASSETS", routerConfig: { has_user_worker: true, invoke_user_worker_ahead_of_assets: true } },
 });
 
+function checkFavicon(html) {
+  assert.match(html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? "",
+    /<link rel="icon" href="\/favicon\.ico\?v=3"/);
+}
+
 try {
   const response = await worker.dispatchFetch("https://book2audiogo.com/");
   assert.equal(response.status, 200);
@@ -44,6 +49,7 @@ try {
   const updatesResponse = await worker.dispatchFetch("https://book2audiogo.com/updates");
   assert.equal(updatesResponse.status, 200);
   const updatesHtml = await updatesResponse.text();
+  checkFavicon(updatesHtml);
   assert.equal((updatesHtml.match(/<h1[\s>]/g) ?? []).length, 1);
   assert.ok(updatesHtml.includes("<h1>Release notes</h1>"));
   assert.match(updatesHtml, /rel="canonical" href="https:\/\/book2audiogo.com\/updates"/);
@@ -87,6 +93,7 @@ try {
       assert.equal(result.status, 200, path);
       const body = await result.text();
       const artifact = await readFile("dist/client/_marketing" + (path === "/" ? "/home" : path) + ".html", "utf8");
+      checkFavicon(body);
       assert.equal(body, artifact, "Must serve pre-rendered HTML: " + path);
       assert.ok(body.includes(`<html lang="${lang === "zh" ? "zh-CN" : lang}">`), path);
       assert.match(body, /hreflang="x-default"/i);
@@ -97,7 +104,9 @@ try {
   }
   const tutorial = await worker.dispatchFetch("https://book2audiogo.com/guides/itunes-apple-music");
   assert.equal(tutorial.status, 200);
-  assert.match(await tutorial.text(), /Open Audio Folder/);
+  const tutorialHtml = await tutorial.text();
+  assert.match(tutorialHtml, /Open Audio Folder/);
+  checkFavicon(tutorialHtml);
 
   const robots = await worker.dispatchFetch("https://book2audiogo.com/robots.txt");
   assert.equal(robots.status, 200);
