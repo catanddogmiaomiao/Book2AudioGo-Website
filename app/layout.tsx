@@ -14,7 +14,7 @@ const baseMetadata: Metadata = {
   openGraph: { title: "Free PDF & EPUB to Audiobook Converter | Book2Audio GO", description: "Download the Windows book to audio app. Core features are free: preview chapters, choose a voice and export MP3 audiobooks.", url: "https://book2audiogo.com/", siteName: "Book2Audio GO", type: "website", locale: "en_US" },
   twitter: { card: "summary", title: "Free PDF & EPUB to Audiobook Converter | Book2Audio GO", description: "Turn your ebooks into chapter-based MP3 audiobooks with free core features on Windows." },
   alternates: { canonical: "https://book2audiogo.com/" },
-  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  icons: { icon: { url: "/favicon.ico?v=2", sizes: "16x16 32x32 48x48" } },
 };
 
 export async function generateMetadata(): Promise<Metadata> {
