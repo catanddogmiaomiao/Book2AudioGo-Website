@@ -7,6 +7,8 @@ import { Miniflare } from "miniflare";
 const serverRoot = resolve("dist/server");
 const productionConfig = JSON.parse(await readFile(resolve(serverRoot, "wrangler.json"), "utf8"));
 assert.equal(productionConfig.assets.binding, "ASSETS");
+assert.ok(productionConfig.d1_databases.some(database => database.binding === "ACCOUNT_ANALYTICS" && database.database_id),
+  "Production must bind the account database for registration statistics");
 const files = (await readdir(serverRoot, { recursive: true })).filter(file => /\.(m?js)$/.test(file) && file !== "index.js");
 const worker = new Miniflare({
   modulesRoot: serverRoot,
