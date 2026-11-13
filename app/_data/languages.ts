@@ -48,3 +48,7 @@ export function localeAlternates(path: string, lang: Lang) {
     languages: Object.fromEntries([...languages.map(option => [htmlLang(option), localizedHref(path, option)]), ["x-default", path]]),
   };
 }
+
+export function iphoneGuideHref(lang: Lang) {
+  return (lang === "zh" ? "" : `/${lang}`) + "/guides/itunes-apple-music";
+}

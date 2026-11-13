@@ -8,7 +8,7 @@ const files = (await readdir(server, { recursive: true }))
   .filter(file => /\.(m?js)$/.test(file) && file !== "index.js");
 const sitemap = await readFile("public/sitemap.xml", "utf8");
 const paths = Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), match => new URL(match[1]).pathname)
-  .filter(path => path !== "/updates" && path !== "/guides/itunes-apple-music");
+  .filter(path => path !== "/updates" && !path.endsWith("/guides/itunes-apple-music"));
 const worker = new Miniflare({
   modulesRoot: server,
   modules: ["index.js", ...files].map(file => ({ type: "ESModule", path: resolve(server, file) })),

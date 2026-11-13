@@ -1,7 +1,7 @@
 import WorkflowSteps from "./WorkflowSteps";
 import { MarketingLanguages } from "./MarketingNavigation";
 import { marketingCopy } from "../_data/marketing-copy";
-import { localizedHref, type Lang } from "../_data/languages";
+import { iphoneGuideHref, localizedHref, type Lang } from "../_data/languages";
 import { guideText } from "../_data/guide-copy";
 import DiscoveryContent from "./DiscoveryContent";
 import UpdateNotice from "./UpdateNotice";
@@ -110,7 +110,7 @@ export default function Home({ lang }: { lang: Lang }) {
     <section className="workflowSummary" id="how"><div className="wrap">
       <h2>{t.how}</h2>
       <WorkflowSteps lang={lang} steps={t.steps} summary />
-      <div className="workflowLinks"><a className="guideLink" href={localizedHref("/how-it-works", lang)}>{t.nav[1]} →</a><a className="guideLink" href="/guides/itunes-apple-music" hrefLang="zh-CN">{details.related} →</a></div>
+      <div className="workflowLinks"><a className="guideLink" href={localizedHref("/how-it-works", lang)}>{t.nav[1]} →</a><a className="guideLink" href={iphoneGuideHref(lang)}>{details.related} →</a></div>
     </div></section>
     <DiscoveryContent lang={lang} />
     <section className="final"><div className="wrap"><div><p>BOOK2AUDIO GO</p><h2>{t.cta}</h2><span>{t.ctaBody}</span><a className="primary light" href={downloadUrl}>▣&nbsp; {t.download}</a></div><div className="disc" aria-hidden="true"><div><span>BOOK2AUDIO</span><b>GO</b></div></div></div></section>

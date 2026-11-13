@@ -63,7 +63,8 @@ const worker = {
       }
     }
     if (env.ASSETS && (request.method === "GET" || request.method === "HEAD") &&
-        (url.pathname === "/guides/itunes-apple-music" ||
+        (/^\/(?:en|ja|ko|fr|es)\/guides\/itunes-apple-music$/.test(url.pathname) ||
+         url.pathname === "/guides/itunes-apple-music" ||
          url.pathname.startsWith("/guides/itunes-apple-music/"))) {
       return env.ASSETS.fetch(request);
     }

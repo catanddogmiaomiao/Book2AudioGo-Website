@@ -104,11 +104,18 @@ try {
       assert.doesNotMatch(body, /<meta[^>]+content="[^"]*noindex/i);
     }
   }
-  const tutorial = await worker.dispatchFetch("https://book2audiogo.com/guides/itunes-apple-music");
-  assert.equal(tutorial.status, 200);
-  const tutorialHtml = await tutorial.text();
-  assert.match(tutorialHtml, /Open Audio Folder/);
-  checkFavicon(tutorialHtml);
+  for (const lang of ["en", "zh", "ja", "ko", "fr", "es"]) {
+    const path = (lang === "zh" ? "" : "/" + lang) + "/guides/itunes-apple-music";
+    assert.ok(listed.includes(path));
+    const tutorial = await worker.dispatchFetch("https://book2audiogo.com" + path);
+    assert.equal(tutorial.status, 200, path);
+    const html = await tutorial.text();
+    assert.ok(html.includes(`<html lang="${lang === "zh" ? "zh-CN" : lang}">`));
+    assert.ok(html.includes(`rel="canonical" href="https://book2audiogo.com${path}"`));
+    for (const image of ["iphone-library.webp", "iphone-album.webp"]) assert.ok(html.includes(image));
+    assert.doesNotMatch(html, /<script\b/);
+    checkFavicon(html);
+  }
 
   const robots = await worker.dispatchFetch("https://book2audiogo.com/robots.txt");
   assert.equal(robots.status, 200);

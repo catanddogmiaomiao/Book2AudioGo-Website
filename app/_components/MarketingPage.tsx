@@ -5,7 +5,7 @@ import DiscoveryContent from "./DiscoveryContent";
 import { MarketingLanguages } from "./MarketingNavigation";
 import { guideMetadata } from "../_data/conversion-guides";
 import { homeMetadata, marketingCopy, marketingMetadata } from "../_data/marketing-copy";
-import { localizedHref, type Lang, type MarketingPath } from "../_data/languages";
+import { iphoneGuideHref, localizedHref, type Lang, type MarketingPath } from "../_data/languages";
 import { DOWNLOAD_URL } from "../_data/releases";
 
 function sectionInfo(lang: Lang, path: MarketingPath) {
@@ -50,7 +50,7 @@ export default function MarketingPage({ lang, path }: { lang: Lang; path: Market
       </>}
       {path === "/how-it-works" && <>
         <WorkflowSteps lang={lang} steps={copy.steps} />
-        <p><a className="guideLink" href="/guides/itunes-apple-music" hrefLang="zh-CN">{more.related} →</a></p>
+        <p><a className="guideLink" href={iphoneGuideHref(lang)}>{more.related} →</a></p>
       </>}
       {path === "/formats" && <>
         <p className="formatPill">EPUB · PDF · TXT · DOCX → MP3 / WAV</p>

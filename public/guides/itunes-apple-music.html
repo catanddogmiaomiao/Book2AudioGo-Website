@@ -2,49 +2,42 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<link rel="canonical" href="https://book2audiogo.com/guides/itunes-apple-music">
-<link rel="icon" href="/favicon.ico?v=3" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>如何在 Windows 上将有声书导入 iTunes | Book2Audio GO</title>
-<style>
-body { background: #f4f0e6; color: #17373c; font: 17px/1.8 system-ui, sans-serif; margin: 0; }
-main { max-width: 760px; margin: auto; padding: 40px 20px 60px; }
-h1 { font-size: clamp(1.9rem, 5vw, 2.75rem); line-height: 1.25; }
-h2 { line-height: 1.4; margin-top: 2em; }
-a { color: #075d66; text-underline-offset: 3px; }
-figure { margin: 1.25em 0 2em; }
-img { display: block; max-width: 100%; height: auto; border-radius: 8px; }
-figcaption { color: #416268; font-size: .88em; margin-top: .45em; }
-kbd, code { background: #e3eae4; border-radius: 4px; padding: .1em .35em; }
-</style>
+<title>在 iPhone 的「音乐」App 听 Book2Audio GO 有声书</title>
+<meta name="description" content="用 Windows 上的 iTunes 同步已转换的 MP3 章节，然后在 iPhone 的「音乐」App 中按专辑播放。">
+<link rel="canonical" href="https://book2audiogo.com/guides/itunes-apple-music">
+<link rel="alternate" hreflang="en" href="https://book2audiogo.com/en/guides/itunes-apple-music">
+<link rel="alternate" hreflang="zh-CN" href="https://book2audiogo.com/guides/itunes-apple-music">
+<link rel="alternate" hreflang="ja" href="https://book2audiogo.com/ja/guides/itunes-apple-music">
+<link rel="alternate" hreflang="ko" href="https://book2audiogo.com/ko/guides/itunes-apple-music">
+<link rel="alternate" hreflang="fr" href="https://book2audiogo.com/fr/guides/itunes-apple-music">
+<link rel="alternate" hreflang="es" href="https://book2audiogo.com/es/guides/itunes-apple-music">
+<link rel="alternate" hreflang="x-default" href="https://book2audiogo.com/en/guides/itunes-apple-music">
+<link rel="icon" href="/favicon.ico?v=3" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48">
+<style>body{margin:0;background:#f4f0e6;color:#17373c;font:17px/1.7 system-ui,sans-serif}main{max-width:820px;margin:auto;padding:24px 20px 60px}nav{display:flex;flex-wrap:wrap;gap:8px 16px;margin-bottom:28px}a{color:#075d66;text-underline-offset:3px}nav a[aria-current]{font-weight:700}h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.18}h2{line-height:1.35;margin-top:1.6em}figure{margin:1em 0}img{display:block;max-width:100%;height:auto;border-radius:9px}figcaption{font-size:.88em;color:#36545a;margin-top:.45em}.phones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.phones img{width:100%;max-width:350px}.note{background:#e3ece6;padding:12px 16px;border-radius:8px}@media(max-width:520px){.phones{grid-template-columns:1fr}}</style>
 </head>
 <body>
 <main>
-<a href="/">Book2Audio GO 官网</a>
-
+<nav><a href="/en/guides/itunes-apple-music" hreflang="en" lang="en">iphone-album</a> <a href="/guides/itunes-apple-music" hreflang="zh-CN" lang="zh-CN" aria-current="page">iphone-album</a> <a href="/ja/guides/itunes-apple-music" hreflang="ja" lang="ja">iphone-album</a> <a href="/ko/guides/itunes-apple-music" hreflang="ko" lang="ko">iphone-album</a> <a href="/fr/guides/itunes-apple-music" hreflang="fr" lang="fr">iphone-album</a> <a href="/es/guides/itunes-apple-music" hreflang="es" lang="es">iphone-album</a></nav>
+<a href="/zh">返回 Book2Audio GO</a>
 <article>
-<h1>如何在 Windows 上将有声书导入 iTunes</h1>
-<p>用 Book2Audio GO 将电子书转换为 MP3 后，就可以把生成的章节添加到 iTunes 或 Windows 版 Apple Music 的资料库。</p>
-<h2>1. 打开书籍的音频文件夹</h2>
-<p>在 Book2Audio GO 左侧打开 <strong>Library</strong>，将鼠标移到书籍封面上，点击 <strong>Open Audio Folder</strong>。如果要导入整本书，先等所有章节转换完成。</p>
-<figure><img src="/guides/itunes-apple-music/audio-folder.png" alt="Book2Audio GO 书籍封面上的 Open Audio Folder 按钮" loading="lazy"><figcaption>Book2Audio GO 书籍封面上的 Open Audio Folder 按钮</figcaption></figure>
-<h2>2. 复制文件夹路径</h2>
-<p>在打开的文件资源管理器中，按 <kbd>Ctrl</kbd> + <kbd>L</kbd> 选中地址栏，再按 <kbd>Ctrl</kbd> + <kbd>C</kbd> 复制路径。下方会列出已经生成的 MP3 章节。</p>
-<figure><img src="/guides/itunes-apple-music/copy-path.png" alt="资源管理器中选中的音频文件夹路径，下方列出 MP3 文件" loading="lazy"><figcaption>资源管理器中选中的音频文件夹路径，下方列出 MP3 文件</figcaption></figure>
-<h2>3. 将 MP3 添加到 iTunes 资料库</h2>
-<p>在 Windows 版 iTunes 中，点击 <strong>文件 → 将文件添加到资料库</strong>，也可以按 <kbd>Ctrl</kbd> + <kbd>O</kbd>。在弹出的窗口中点击地址栏，粘贴刚复制的路径并按回车。选中想听的 MP3，然后点击 <strong>打开</strong>。</p>
-<p>如果要一次导入整本书，可选择 <strong>文件 → 将文件夹添加到资料库</strong>，然后选中该书的 <code>audio</code> 文件夹。</p>
-<figure><img src="/guides/itunes-apple-music/itunes-import.png" alt="iTunes 文件菜单中的将文件添加到资料库" loading="lazy"><figcaption>iTunes 文件菜单中的将文件添加到资料库</figcaption></figure>
-<h2>4. 在资料库中找到书籍并播放</h2>
-<p>导入后，在 iTunes 资料库的 <strong>最近添加</strong> 中找书籍封面，也可以用顶部的搜索框搜索书名。点击封面展开曲目，再双击想听的章节。截图示例只导入了一个章节，所以列表中只有一条曲目。</p>
-<figure><img src="/guides/itunes-apple-music/recently-added.png" alt="iTunes 资料库的今天分组中显示刚导入的书" loading="lazy"><figcaption>iTunes 资料库的今天分组中显示刚导入的书</figcaption></figure>
-<figure><img src="/guides/itunes-apple-music/itunes-search.png" alt="iTunes 工具栏上的搜索框与右侧活动图标" loading="lazy"><figcaption>iTunes 工具栏上的搜索框与右侧活动图标</figcaption></figure>
-<figure><img src="/guides/itunes-apple-music/chapter-list.png" alt="展开书籍封面后显示第 39 章 Acknowledgments" loading="lazy"><figcaption>展开书籍封面后显示第 39 章 Acknowledgments</figcaption></figure>
-<h2>使用 Windows 版 Apple Music 播放</h2>
-<p>如果你使用的是独立的 Apple Music App，打开边栏顶部的操作菜单，选择 <strong>导入</strong>，再选择同一个 MP3 文件或整个 <code>audio</code> 文件夹。导入后，在 <strong>资料库 → 最近添加</strong> 或 <strong>专辑</strong> 中找到这本书，打开后选择章节播放。<a href="https://support.apple.com/zh-cn/guide/music-windows/mus3081/windows">Apple 官方导入说明</a></p>
-<p>如果还想在 iPhone 或 iPad 上通过 Apple Music 播放，可以将 MP3 作为音乐曲目导入，再使用同一个已订阅 Apple Music 的账户，在电脑和移动设备上打开 <strong>同步资料库</strong>。使用 iTunes 时，这个选项叫 <strong>iCloud 音乐资料库</strong>。同步完成后，在移动设备的 Apple Music 资料库中按书名查找。<a href="https://support.apple.com/zh-cn/118285">Apple 官方同步说明</a></p>
+<h1>在 iPhone 的「音乐」App 听 Book2Audio GO 有声书</h1>
+<p>用 Windows 上的 iTunes 同步已转换的 MP3 章节，然后在 iPhone 的「音乐」App 中按专辑播放。</p>
+<h2>1. 找到并导入 MP3 章节</h2>
+<p>在 Book2Audio GO 的书库里，打开书籍封面上的 Open Audio Folder（打开音频文件夹）。在 iTunes 的「音乐」资料库中选择「文件 → 将文件添加到资料库」，选中生成的 MP3。整本导入可选择「将文件夹添加到资料库」。将章节作为音乐曲目导入，使用相同的专辑名和正确的曲目编号。</p>
+<figure><a href="/guides/itunes-apple-music/audio-folder.png" aria-label="Open Audio Folder"><img src="/guides/itunes-apple-music/audio-folder.png" alt="Open Audio Folder" loading="lazy"></a><figcaption>Open Audio Folder</figcaption></figure>
+<figure><a href="/guides/itunes-apple-music/itunes-import.png" aria-label="iTunes · File → Add File to Library"><img src="/guides/itunes-apple-music/itunes-import.png" alt="iTunes · File → Add File to Library" loading="lazy"></a><figcaption>iTunes · File → Add File to Library</figcaption></figure>
+<h2>2. 用 iTunes 同步到 iPhone</h2>
+<p>用 USB 数据线连接并解锁 iPhone。出现提示时轻点「信任」。在 iTunes 左上方点设备图标，在设置下选择「音乐」，勾选「同步音乐」。选择同步所选专辑，勾选你的有声书，点击「应用」，如有需要再点「同步」。等待同步完成后再拔线。</p>
+<p class="note">如果看到「移除并同步」，确认后会用这台电脑的资料库替换手机上同类的已同步内容。如果 iTunes 没有「音乐」选项，请用 Windows 版 Apple Music 导入 MP3，再在「Apple 设备」App 中选中 iPhone 并同步音乐。</p>
+<p><a href="https://support.apple.com/zh-cn/108347">Apple 官方同步说明 · iTunes</a> · <a href="https://support.apple.com/zh-cn/guide/devices-windows/mchlbf6a1fab/windows">Apple 官方同步说明 · Apple Devices</a></p>
+<h2>3. 在 iPhone 上播放</h2>
+<p>打开「音乐」App，进入「资料库 → 专辑」，也可以在「最近添加」找到书籍封面。点开专辑后选择一个章节，或点「播放」按顺序听。截图中的专辑只同步了一个章节。</p>
+<div class="phones"><figure><a href="/guides/itunes-apple-music/iphone-library.webp" aria-label="在「资料库」的「最近添加」找到已同步的有声书"><img src="/guides/itunes-apple-music/iphone-library.webp" alt="在「资料库」的「最近添加」找到已同步的有声书" loading="lazy"></a><figcaption>在「资料库」的「最近添加」找到已同步的有声书</figcaption></figure><figure><a href="/guides/itunes-apple-music/iphone-album.webp" aria-label="打开有声书专辑并播放章节"><img src="/guides/itunes-apple-music/iphone-album.webp" alt="打开有声书专辑并播放章节" loading="lazy"></a><figcaption>打开有声书专辑并播放章节</figcaption></figure></div>
+<h2>使用 iCloud 同步资料库</h2>
+<p>如果已订阅 Apple Music，也可以在电脑和 iPhone 上登录同一个 Apple 账户。先把 MP3 导入音乐资料库，再打开 iTunes 的「编辑 → 偏好设置 → 常规 → iCloud 音乐资料库」，并在 iPhone 的「设置 → App → 音乐」中开启「同步资料库」。等上传完成后，回到 iPhone 的「音乐」App 查找专辑。使用云同步时，设备的手动音乐同步选项可能不可用。</p>
+<p><a href="https://support.apple.com/zh-cn/118285">Apple 官方同步说明 · iCloud</a></p>
 </article>
-
 </main>
 </body>
 </html>
