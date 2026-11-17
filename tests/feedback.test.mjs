@@ -43,7 +43,7 @@ try {
   await metrics.batch([
     metrics.prepare("CREATE TABLE product_events (event_name TEXT, installation_id TEXT, received_at INTEGER)"),
     metrics.prepare("CREATE TABLE purchase_completed (received_at INTEGER)"),
-    metrics.prepare("CREATE TABLE users (id TEXT PRIMARY KEY, username TEXT, created INTEGER, email_verified_at INTEGER, registration_country TEXT, registration_region TEXT)"),
+    metrics.prepare("CREATE TABLE users (id TEXT PRIMARY KEY, username TEXT, created INTEGER, email_verified_at INTEGER, registration_country TEXT, registration_region TEXT, email TEXT)"),
   ]);
   await metrics.batch([
     metrics.prepare(`INSERT INTO product_events VALUES
@@ -51,8 +51,8 @@ try {
       ('conversion_failed','install-a',unixepoch()),('app_open','install-b',unixepoch()-172800)`),
     metrics.prepare("INSERT INTO purchase_completed VALUES(unixepoch())"),
     metrics.prepare(`INSERT INTO users VALUES
-      ('new','<reader>',unixepoch(),unixepoch(),'JP','Tokyo'),
-      ('old','legacy@example.test',unixepoch()-172800,NULL,NULL,NULL)`),
+      ('new','<reader>',unixepoch(),unixepoch(),'JP','Tokyo','reader@example.test'),
+      ('old','legacy@example.test',unixepoch()-172800,NULL,NULL,NULL,NULL)`),
   ]);
   assert.equal((await worker.dispatchFetch(url+'/admin/codes')).status,401);
   const codesResponse=await worker.dispatchFetch(url+'/admin/codes',{headers:{Authorization:auth}});
@@ -129,15 +129,17 @@ try {
   assert.match(await downloadReport(1), /所选周期新增<\/dt><dd>1/);
   assert.match(await downloadReport(7), /所选周期新增<\/dt><dd>2/);
   assert.match(await downloadReport(), /<td>未知<\/td>\s*<td>—<\/td><td>1<\/td>/);
-  assert.doesNotMatch(await downloadReport(), /注册用户名|&lt;reader&gt;/);
+  assert.doesNotMatch(await downloadReport(), /注册用户明细|reader@example\.test|&lt;reader&gt;/);
   const userDetails = await downloadReport(1, "&users=1");
-  assert.match(userDetails, /<li>&lt;reader&gt;<\/li>\s*<li>l\*\*\*（旧邮箱账号）<\/li>/);
+  assert.match(userDetails, /<td>&lt;reader&gt;<\/td><td>reader@example\.test<\/td>\s*<td>日本<\/td><td>Tokyo<\/td>/);
+  assert.match(userDetails, /<time datetime="[^"]+Z">\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}<\/time>/);
+  assert.match(userDetails, /<td>l\*\*\*（旧邮箱账号）<\/td><td>未记录<\/td>\s*<td>未知<\/td><td>—<\/td>/);
   assert.doesNotMatch(userDetails, /legacy@example\.test|<reader>/);
   await metrics.prepare(`WITH RECURSIVE n(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM n WHERE i<25)
-    INSERT INTO users SELECT 'extra-'||i,'reader-'||i,unixepoch()-259200-i,NULL,NULL,NULL FROM n`).run();
+    INSERT INTO users SELECT 'extra-'||i,'reader-'||i,unixepoch()-259200-i,NULL,NULL,NULL,NULL FROM n`).run();
   assert.match(await downloadReport(1, "&users=1"), /users=2#registered-users">下一页/);
   const nextUserPage = await downloadReport(1, "&users=2");
-  assert.match(nextUserPage, /<li>reader-24<\/li><li>reader-25<\/li>/);
+  assert.match(nextUserPage, /<td>reader-24<\/td>[\s\S]*<td>reader-25<\/td>/);
   assert.match(nextUserPage, /users=1#registered-users">上一页/);
   assert.doesNotMatch(nextUserPage, /&lt;reader&gt;|下一页/);
   assert.equal((await post(payload, { Origin: "https://evil.example" })).status, 403);

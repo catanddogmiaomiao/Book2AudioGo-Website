@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { marketingRoute } from "../app/_data/languages";
 import { RELEASE_DATE } from "../app/_data/releases";
 import { hasAdminAccess } from "./admin-auth";
-import { productMetrics, registrationMetrics, registrationUsernames } from "./product-metrics";
+import { productMetrics, registrationMetrics, registrationUsers } from "./product-metrics";
 
 const VERSION = "1.2.0";
 const FILE_URL = `https://downloads.book2audiogo.com/releases/${RELEASE_DATE}/Book2AudioGo-${VERSION}-windows-x64-setup.exe`;
@@ -88,7 +88,7 @@ export async function downloadRoute(request: Request, env: DownloadEnv, ctx: { w
     const [metrics, registrations, users, visitors] = await Promise.all([
       db ? productMetrics(db, today, range).catch(() => null) : null,
       db ? registrationMetrics(db, today, range).catch(() => null) : null,
-      db && showUsers ? registrationUsernames(db, userPage).catch(() => null) : null,
+      db && showUsers ? registrationUsers(db, userPage).catch(() => null) : null,
       env.DOWNLOAD_STATS.getByName("website").visitReport(today, showVisitors ? visitorPage : null).catch(() => null),
     ]);
     const visitorLink = (page: number) => `?days=${range}&amp;visitors=${page}#website-visitors`;
@@ -109,13 +109,15 @@ export async function downloadRoute(request: Request, env: DownloadEnv, ctx: { w
       `<tr><td>${escapeHtml(row.country ? countryNames.of(row.country) ?? row.country : "未知")}</td>
 <td>${escapeHtml(row.region || "—")}</td><td>${row.count}</td></tr>`).join("");
     const userLink = (page: number) => `?days=${range}&amp;users=${page}#registered-users`;
-    const usernames = showUsers ? `<div id="registered-users"><h3>注册用户名</h3>
+    const userDetails = showUsers ? `<div id="registered-users"><h3>注册用户明细</h3>
 <p><a href="?days=${range}#registration">收起名单</a></p>
-${users ? `<ul>${users.usernames.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
-${users.usernames.length ? "" : "<p>本页暂无用户名。</p>"}
-<nav aria-label="用户名分页">${userPage > 1 ? `<a href="${userLink(userPage - 1)}">上一页</a>` : ""}
+${users ? `<table><thead><tr><th scope="col">用户名</th><th scope="col">注册邮箱</th><th scope="col">国家或地区</th><th scope="col">省州</th><th scope="col">注册时间（北京时间）</th></tr></thead>
+<tbody>${users.rows.map(row => `<tr><td>${escapeHtml(row.username)}</td><td>${escapeHtml(row.email || "未记录")}</td>
+<td>${escapeHtml(row.registration_country ? countryNames.of(row.registration_country) ?? row.registration_country : "未知")}</td><td>${escapeHtml(row.registration_region || "—")}</td>
+<td><time datetime="${new Date(row.created * 1000).toISOString()}">${beijingDay(row.created * 1000)} ${beijingTime(row.created * 1000)}</time></td></tr>`).join("") || '<tr><td colspan="5">本页暂无注册用户。</td></tr>'}</tbody></table>
+<nav aria-label="注册用户分页">${userPage > 1 ? `<a href="${userLink(userPage - 1)}">上一页</a>` : ""}
 <span>第 ${userPage} 页</span>${users.hasNext ? `<a href="${userLink(userPage + 1)}">下一页</a>` : ""}</nav>` :
-'<p>用户名暂不可用，请稍后刷新。</p>'}</div>` : "";
+'<p>注册用户明细暂不可用，请稍后刷新。</p>'}</div>` : "";
     const rangeNav = [1, 7, 30].map(n => `<a href="?days=${n}"${range === n ? ' aria-current="page"' : ''}>${n === 1 ? "今天" : "最近 " + n + " 天"}</a>`).join("");
     const cards = (labels: [string, string][]) => labels.map(([label, key]) =>
       `<div><dt>${label}</dt><dd>${metrics?.[key] ?? 0}</dd></div>`).join("");
@@ -131,14 +133,14 @@ ${visitors ? `<dl><div><dt>去重访客</dt><dd><a href="${visitorLink(1)}" aria
 <p>按北京时间和访问 IP 去重，同一网络的多人可能合计为一位访客。仅显示当天明细。</p>
 ${visitorDetails}</section>
 ${registrations ? `<section id="registration"><h2>注册用户</h2>
-<dl><div><dt>当前注册总数</dt><dd><a href="${userLink(1)}" aria-label="查看 ${registrations.totals.total} 个注册账号的用户名">${registrations.totals.total}</a></dd></div>
+<dl><div><dt>当前注册总数</dt><dd><a href="${userLink(1)}" aria-label="查看 ${registrations.totals.total} 个注册账号的明细">${registrations.totals.total}</a></dd></div>
 <div><dt>已验证邮箱</dt><dd>${registrations.totals.verified}</dd></div>
 <div><dt>所选周期新增</dt><dd>${registrations.totals.added}</dd></div></dl>
-${usernames}
+${userDetails}
 <h3>全部账号的注册来源</h3><p>地区取自注册时的网络出口。历史未记录或无法识别的来源显示为未知。</p>
 <table><thead><tr><th scope="col">国家或地区</th><th scope="col">省州</th><th scope="col">账号数</th></tr></thead>
 <tbody>${registrationRows || '<tr><td colspan="3">暂无注册记录</td></tr>'}</tbody></table></section>` :
-`<section id="registration"><h2>注册用户</h2><p>注册统计暂不可用，请稍后刷新。</p>${usernames}</section>`}
+`<section id="registration"><h2>注册用户</h2><p>注册统计暂不可用，请稍后刷新。</p>${userDetails}</section>`}
 <section><h2>当前版本</h2><p>今天 <strong>${current?.today ?? 0}</strong> 次 · 累计 <strong>${current?.total ?? 0}</strong> 次</p>
 <p>统计官网统一入口发起的下载。重复点击会分别计数。</p></section>
 <section><h2>下载明细</h2><table><thead><tr><th scope="col">日期</th><th scope="col">版本</th><th scope="col">次数</th><th scope="col">去重 IP</th></tr></thead>

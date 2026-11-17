@@ -29,13 +29,13 @@ type RegistrationRegion = { country: string | null; region: string | null; count
 
 const USER_PAGE_SIZE = 25;
 
-export async function registrationUsernames(db: D1Database, page: number) {
+export async function registrationUsers(db: D1Database, page: number) {
   // Some old accounts have an email address in the username field.
   const { results } = await db.prepare(`SELECT CASE WHEN instr(username, '@') > 0
-    THEN substr(username, 1, 1) || '***（旧邮箱账号）' ELSE username END AS username
+    THEN substr(username, 1, 1) || '***（旧邮箱账号）' ELSE username END AS username, email, registration_country, registration_region, created
     FROM users ORDER BY created DESC, id DESC LIMIT ? OFFSET ?`)
-    .bind(USER_PAGE_SIZE + 1, (page - 1) * USER_PAGE_SIZE).all<{ username: string }>();
-  return { usernames: results.slice(0, USER_PAGE_SIZE).map(row => row.username), hasNext: results.length > USER_PAGE_SIZE };
+    .bind(USER_PAGE_SIZE + 1, (page - 1) * USER_PAGE_SIZE).all<{ username: string; email: string | null; registration_country: string | null; registration_region: string | null; created: number }>();
+  return { rows: results.slice(0, USER_PAGE_SIZE), hasNext: results.length > USER_PAGE_SIZE };
 }
 
 export async function registrationMetrics(db: D1Database, today: string, days: number) {
