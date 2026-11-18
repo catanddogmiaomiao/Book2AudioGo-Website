@@ -33,6 +33,8 @@ const worker = {
     const lang = marketing?.lang ?? legacyLang;
     const render = () => {
       const headers = new Headers(request.headers);
+      // vinext otherwise streams metadata into the body for requests without a user agent.
+      if (!headers.get("user-agent")) headers.set("user-agent", "Book2AudioGO-HTML");
       headers.set("x-b2a-locale", isLang(lang) ? lang : "en");
       return handler.fetch(new Request(request, { headers }), env, ctx);
     };

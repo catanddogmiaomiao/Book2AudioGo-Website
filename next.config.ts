@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Resolve metadata before rendering the document so crawlers receive it in <head>.
+  htmlLimitedBots: /.*/,
 };
 
 export default nextConfig;

@@ -23,6 +23,17 @@ function checkFavicon(html) {
     /<link rel="icon" href="\/favicon\.ico\?v=3"/);
 }
 
+function checkHeadMetadata(html) {
+  const head = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? "";
+  const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? "";
+  for (const pattern of [/<title[\s>]/gi, /<meta\s+name="description"/gi, /<link\s+rel="canonical"/gi]) {
+    assert.equal([...head.matchAll(pattern)].length, 1, "Metadata must occur once in head: " + pattern);
+    assert.equal([...body.matchAll(pattern)].length, 0, "Metadata must not occur in body: " + pattern);
+  }
+  assert.equal([...head.matchAll(/<link[^>]+hreflang=/gi)].length, 7);
+  assert.doesNotMatch(body, /<link[^>]+hreflang=/i);
+}
+
 try {
   const response = await worker.dispatchFetch("https://book2audiogo.com/");
   assert.equal(response.status, 200);
@@ -96,12 +107,22 @@ try {
       const body = await result.text();
       const artifact = await readFile("dist/client/_marketing" + (path === "/" ? "/home" : path) + ".html", "utf8");
       checkFavicon(body);
+      checkHeadMetadata(body);
       assert.equal(body, artifact, "Must serve pre-rendered HTML: " + path);
       assert.ok(body.includes(`<html lang="${lang === "zh" ? "zh-CN" : lang}">`), path);
       assert.match(body, /hreflang="x-default"/i);
       const preferred = body.match(/<link rel="canonical" href="([^"]+)"/);
       assert.equal(new URL(preferred[1]).pathname, path);
       assert.doesNotMatch(body, /<meta[^>]+content="[^"]*noindex/i);
+    }
+  }
+  // Release notes use request-time rendering rather than pre-rendered assets.
+  for (const lang of ["en", "zh", "ja", "ko", "fr", "es"]) {
+    for (const userAgent of [null, "Mozilla/5.0", "Googlebot/2.1 (+http://www.google.com/bot.html)"]) {
+      const headers = userAgent ? { "user-agent": userAgent } : {};
+      const page = await worker.dispatchFetch(`https://book2audiogo.com/updates?lang=${lang}`, { headers });
+      assert.equal(page.status, 200);
+      checkHeadMetadata(await page.text());
     }
   }
   for (const lang of ["en", "zh", "ja", "ko", "fr", "es"]) {
