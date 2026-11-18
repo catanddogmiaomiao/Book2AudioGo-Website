@@ -15,10 +15,10 @@ const config = {
     if(request.method==='POST') {
       const body=await request.json(); assert.equal(body.action,'issue');
       assert.equal(body.reference,'book2AudioGoPERFORMANCE');
-      assert.equal(body.days,7);
+      assert.ok(body.days===7||body.days==='permanent');
       return Response.json({message:'兑换码已生成',code:'B2A-TEST-ONLY-CODE'});
     }
-    return Response.json({rows:[{id:'local',external_id:'<promo>',days:30,code_tail:'ABCD',code_revision:0,redeem_before:1800000000,
+    return Response.json({rows:[{id:'local',external_id:'<promo>',days:30,code_tail:'ABCD',entitlement_code:'pro.base',code_revision:0,redeem_before:1800000000,
       paid_at:1790000000,redeemed_at:null,status:'issued',username:null}],has_next:false,page:1});
   },
   modulesRoot: serverRoot,
@@ -59,12 +59,14 @@ try {
   assert.equal(codesResponse.status,200);
   assert.equal(codesResponse.headers.get('Referrer-Policy'),'same-origin');
   assert.match(codesResponse.headers.get('Content-Security-Policy'), /form-action 'self'/);
-  const codesHtml=await codesResponse.text();assert.match(codesHtml,/生成兑换码/);assert.match(codesHtml,/&lt;promo&gt;/);
+  const codesHtml=await codesResponse.text();assert.match(codesHtml,/生成兑换码/);assert.match(codesHtml,/&lt;promo&gt;/);assert.match(codesHtml,/<option value="permanent">永久有效<\/option>/);assert.match(codesHtml,/<td>永久有效<\/td>/);
   const codeForm={method:'POST',headers:{Authorization:auth,Origin:url,'Content-Type':'application/x-www-form-urlencoded'},
     body:'action=issue&reference=book2AudioGoPERFORMANCE&days=7&confirm=yes'};
   assert.equal((await worker.dispatchFetch(url+'/admin/codes',{...codeForm,headers:{...codeForm.headers,Origin:'https://evil.test'}})).status,403);
   const generated=await worker.dispatchFetch(url+'/admin/codes',codeForm);
   assert.equal(generated.status,200);assert.match(await generated.text(),/B2A-TEST-ONLY-CODE/);
+  const permanent=await worker.dispatchFetch(url+'/admin/codes',{...codeForm,body:codeForm.body.replace('days=7','days=permanent')});
+  assert.equal(permanent.status,200);assert.match(await permanent.text(),/B2A-TEST-ONLY-CODE/);
   assert.equal((await worker.dispatchFetch(url+'/admin/codes',{...codeForm,body:'action=issue'})).status,400);
   assert.equal((await worker.dispatchFetch(url+'/admin/codes',{...codeForm,body:'x'.repeat(5000)})).status,400);
   const html = await (await worker.dispatchFetch(url + "/")).text();
