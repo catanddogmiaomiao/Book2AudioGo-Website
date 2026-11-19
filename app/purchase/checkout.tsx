@@ -1,6 +1,7 @@
 "use client";
 
 import { LanguageMenu, useLanguage } from "../_components/Language";
+import { PRO_PRICE_USD } from "../_data/pro-price";
 import { localizedHref, paddleLang } from "../_data/languages";
 import { paymentText, type PaymentMessage } from "../_data/payment-copy";
 
@@ -87,7 +88,7 @@ export default function Checkout() {
     </section>
     <article className="purchaseCard">
       <h2>{t("One-device PRO license")}</h2>
-      <div className="previewPrice">US$9.99</div>
+      <div className="previewPrice">{PRO_PRICE_USD}</div>
       <p className="note">{t("One-time payment, before tax. Paddle shows the tax at checkout.")}</p>
       <button className="primary buyButton" disabled={!ready || busy || completed} onClick={pay}>{t("Continue to payment")}</button>
       <p role="status" aria-live="polite">{status && t(status)}</p>

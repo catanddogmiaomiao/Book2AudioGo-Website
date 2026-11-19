@@ -18,7 +18,13 @@ export function localize<K extends string>(copy: Record<K, Translations>) {
   };
 }
 
-export const marketingPaths = ["/", "/features", "/how-it-works", "/formats", "/pdf-to-audiobook", "/epub-to-mp3"] as const;
+export const storePaths = ["/pricing", "/terms", "/privacy", "/refunds"] as const;
+export type StorePath = (typeof storePaths)[number];
+export function isStorePath(path: string): path is StorePath {
+  return storePaths.some(item => item === path);
+}
+
+export const marketingPaths = ["/", "/features", "/how-it-works", "/formats", "/pdf-to-audiobook", "/epub-to-mp3", ...storePaths] as const;
 export type MarketingPath = (typeof marketingPaths)[number];
 export function isMarketingPath(value: string): value is MarketingPath {
   return marketingPaths.some(path => path === value);

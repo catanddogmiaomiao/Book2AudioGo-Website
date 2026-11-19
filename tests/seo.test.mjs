@@ -91,14 +91,33 @@ try {
     assert.match(guideHtml, /property="og:url"/);
   }
 
+  const storePages = [
+    ["/pricing", "Pricing", "US$9.99"],
+    ["/terms", "Terms of Service", "Book2AudioGo Group"],
+    ["/privacy", "Privacy Policy", "https://www.paddle.com/legal/privacy"],
+    ["/refunds", "Refund Policy", "https://paddle.net/"],
+  ];
+  for (const [path, heading, expected] of storePages) {
+    const result = await worker.dispatchFetch("https://book2audiogo.com" + path);
+    const body = await result.text();
+    assert.ok(body.includes(`<h1>${heading}</h1>`), path);
+    assert.ok(body.includes(expected), path);
+  }
+
   const sitemap = await worker.dispatchFetch("https://book2audiogo.com/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type"), /xml/);
   const xml = await sitemap.text();
   assert.match(xml, /xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9"/);
   const listed = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => new URL(m[1]).pathname);
-  const marketingPaths = ["/", "/features", "/how-it-works", "/formats", "/pdf-to-audiobook", "/epub-to-mp3"];
+  const marketingPaths = ["/", "/features", "/how-it-works", "/formats", "/pdf-to-audiobook", "/epub-to-mp3", ...storePages.map(([path]) => path)];
   for (const lang of ["en", "zh", "ja", "ko", "fr", "es"]) {
+    const prefix = lang === "en" ? "" : "/" + lang;
+    const home = await worker.dispatchFetch("https://book2audiogo.com" + (prefix || "/"));
+    const homeHtml = await home.text();
+    for (const [path] of storePages) {
+      assert.ok(homeHtml.includes(`href="${prefix}${path}"`), "Localized homepage link: " + prefix + path);
+    }
     for (const route of marketingPaths) {
       const path = lang === "en" ? route : "/" + lang + (route === "/" ? "" : route);
       assert.ok(listed.includes(path), "Missing from sitemap: " + path);
@@ -190,4 +209,3 @@ try {
 } finally {
   await worker.dispose();
 }
-

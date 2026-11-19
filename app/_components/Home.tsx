@@ -1,4 +1,5 @@
 import WorkflowSteps from "./WorkflowSteps";
+import StoreLinks from "./StoreLinks";
 import { MarketingLanguages } from "./MarketingNavigation";
 import { marketingCopy } from "../_data/marketing-copy";
 import { iphoneGuideHref, localizedHref, type Lang } from "../_data/languages";
@@ -114,6 +115,6 @@ export default function Home({ lang }: { lang: Lang }) {
     </div></section>
     <DiscoveryContent lang={lang} />
     <section className="final"><div className="wrap"><div><p>BOOK2AUDIO GO</p><h2>{t.cta}</h2><span>{t.ctaBody}</span><a className="primary light" href={downloadUrl}>▣&nbsp; {t.download}</a></div><div className="disc" aria-hidden="true"><div><span>BOOK2AUDIO</span><b>GO</b></div></div></div></section>
-    <footer className="wrap"><div className="brand"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></div><p>{t.footer}<br/><small>{t.privacy}</small><a className="footerUpdateLink updateReadMore" href={`/updates?lang=${lang}`}>{releaseCopy[lang].nav}</a> <a href={`/local-tts/${lang}.html`}>{{ en: "Local TTS", zh: "本地 TTS", ja: "ローカル TTS", ko: "로컬 TTS", fr: "TTS local", es: "TTS local" }[lang]}</a></p></footer>
+    <footer className="wrap"><div className="brand"><span className="brandmark">B<span>▶</span></span><strong>Book2Audio <i>GO</i></strong></div><div className="storeFooterDetails"><p>{t.footer}<br/><small>{t.privacy}</small><a className="footerUpdateLink updateReadMore" href={`/updates?lang=${lang}`}>{releaseCopy[lang].nav}</a> <a href={`/local-tts/${lang}.html`}>{{ en: "Local TTS", zh: "本地 TTS", ja: "ローカル TTS", ko: "로컬 TTS", fr: "TTS local", es: "TTS local" }[lang]}</a></p><StoreLinks lang={lang} /></div></footer>
   </main>;
 }

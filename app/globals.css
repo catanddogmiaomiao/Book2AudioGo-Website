@@ -62,3 +62,22 @@
 .workflowScreens figcaption{color:#40585f;font-size:13px;line-height:1.45;margin-top:6px}
 .workflowCardsSummary .workflowScreens{grid-template-columns:1fr}
 @media(max-width:720px){.workflowCardsSummary,.workflowScreens{grid-template-columns:1fr}}
+
+.storePage { max-width: 960px; overflow-wrap: anywhere; }
+.storePage .lead { margin-bottom: 36px; }
+.storeSection { border-top: 1px solid #17333b22; padding-top: 22px; margin-top: 28px; }
+.storeSection h2, .storePlans h2 { margin: 0 0 12px; }
+.storePlans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.storePlans section { background: #fff; border: 1px solid #17333b22; border-radius: 10px; padding: clamp(18px, 3vw, 30px); }
+.storePlans ul { padding-inline-start: 1.25em; line-height: 1.75; }
+.storePage .storePrice { margin: 0 0 10px; font-size: 1.8rem; font-weight: 700; color: var(--teal); }
+.storePage .storeReference { display: inline-block; margin: 0 20px 10px 0; }
+.storeLinks { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.storeLinks a { color: var(--teal); }
+.storeLinks a[aria-current], .storeLinks a:hover { text-decoration: underline; }
+.storeFooterDetails { display: grid; justify-items: center; padding-block: 18px; }
+.storeFooter { padding-block: 20px; }
+@media (max-width: 620px) {
+  .storePlans { grid-template-columns: 1fr; }
+  .storeLinks { justify-content: center; }
+}

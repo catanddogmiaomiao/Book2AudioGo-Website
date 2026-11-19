@@ -1,11 +1,13 @@
 import WorkflowSteps from "./WorkflowSteps";
+import StoreLinks from "./StoreLinks";
+import StorePage, { storeMetadata } from "./StorePage";
 import Home, { homeCopy } from "./Home";
 import ConversionGuide from "./ConversionGuide";
 import DiscoveryContent from "./DiscoveryContent";
 import { MarketingLanguages } from "./MarketingNavigation";
 import { guideMetadata } from "../_data/conversion-guides";
 import { homeMetadata, marketingCopy, marketingMetadata } from "../_data/marketing-copy";
-import { iphoneGuideHref, localizedHref, type Lang, type MarketingPath } from "../_data/languages";
+import { iphoneGuideHref, isStorePath, localizedHref, type Lang, type MarketingPath } from "../_data/languages";
 import { DOWNLOAD_URL } from "../_data/releases";
 
 function sectionInfo(lang: Lang, path: MarketingPath) {
@@ -18,6 +20,7 @@ function sectionInfo(lang: Lang, path: MarketingPath) {
 
 export function routeMetadata(lang: Lang, path: MarketingPath) {
   if (path === "/") return homeMetadata(lang);
+  if (isStorePath(path)) return storeMetadata(path, lang);
   if (path === "/pdf-to-audiobook" || path === "/epub-to-mp3") {
     return guideMetadata(path === "/pdf-to-audiobook" ? "pdf" : "epub", lang);
   }
@@ -27,6 +30,7 @@ export function routeMetadata(lang: Lang, path: MarketingPath) {
 
 export default function MarketingPage({ lang, path }: { lang: Lang; path: MarketingPath }) {
   if (path === "/") return <Home lang={lang} />;
+  if (isStorePath(path)) return <StorePage path={path} lang={lang} />;
   if (path === "/pdf-to-audiobook" || path === "/epub-to-mp3") {
     return <ConversionGuide kind={path === "/pdf-to-audiobook" ? "pdf" : "epub"} lang={lang} />;
   }
@@ -59,6 +63,6 @@ export default function MarketingPage({ lang, path }: { lang: Lang; path: Market
       <a className="primary" href={DOWNLOAD_URL}>{copy.download}</a>
     </article>
     {path === "/formats" && <DiscoveryContent lang={lang} />}
-    <footer className="wrap"><p>{copy.footer}<br /><small>{copy.privacy}</small></p></footer>
+    <footer className="wrap storeFooter"><p>{copy.footer}<br /><small>{copy.privacy}</small></p><StoreLinks lang={lang} /></footer>
   </main>;
 }
