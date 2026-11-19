@@ -15,7 +15,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
   en: {
     "/terms": {
       title: "Terms of Service",
-      intro: "These terms cover the Book2Audio GO website and Windows app, provided by Book2AudioGo Group.",
+      intro: "Book2Audio GO is developed and operated by GUO XINYU, an independent developer, under the Book2Audio GO brand. These terms apply to the Book2Audio GO website and Windows app.",
       sections: [
         { title: "Using the app", text: "Book2Audio GO grants you a limited license to use the software. Convert only books and documents you are authorized to use and respect any rights or restrictions that apply to the source material and resulting audio. Do not bypass copy protection or share audio without the necessary permissions." },
         { title: "Free and Pro licenses", text: "The free version supports manual chapter conversion. Paid Pro features include batch conversion and the reading plan. The advertised Paddle Pro option is a one-time license for one active device, with no automatic renewal. When switching devices, unlink the previous device in your account and then activate the new one. For a redemption code, check its duration and conditions in the listing before buying." },
@@ -26,7 +26,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
     },
     "/privacy": {
       title: "Privacy Policy",
-      intro: "This policy explains how Book2Audio GO handles data through its website, account service and Windows app. Book2AudioGo Group handles the data described below.",
+      intro: "This policy explains how Book2Audio GO handles data through its website, account service and Windows app. GUO XINYU, the independent developer operating under the Book2Audio GO brand, is responsible for the personal data processing described below.",
       sections: [
         { title: "Books, text and audio", text: "The app parses books and saves exported audio on your device. With a local TTS model, speech synthesis runs on your device. With online speech synthesis, the text needed for conversion is sent to the selected online speech service for processing. The Microsoft online voices receive the selected text and voice settings through Edge TTS." },
         { title: "Accounts and licenses", text: "We process account information such as username and email, verification records, device activation details and purchase or redemption records to sign you in, manage Pro access and help resolve support requests. Resend delivers verification and password reset emails." },
@@ -50,7 +50,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
   zh: {
     "/terms": {
       title: "服务条款",
-      intro: "本条款适用于 Book2Audio GO 官网和 Windows 应用，由 Book2AudioGo Group 提供。",
+      intro: "Book2Audio GO 由独立开发者 GUO XINYU 以 Book2Audio GO 品牌开发和运营。本条款适用于 Book2Audio GO 官网和 Windows 应用。",
       sections: [
         { title: "软件使用许可", text: "Book2Audio GO 授予你使用本软件的有限许可。请仅转换你有权使用的书籍和文档，并遵守原始内容及生成音频适用的权利和限制。请勿绕过版权保护，或在未获必要授权的情况下分享音频。" },
         { title: "免费版与 Pro 授权", text: "免费版支持手动按章转换。Pro 功能包括批量转换和阅读计划。页面所示 Paddle Pro 方案为单台设备一次性授权，不自动续费。换机时，在账号页解绑原设备后再激活新设备。购买兑换码前，请核对商品页注明的有效期和使用条件。" },
@@ -61,7 +61,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
     },
     "/privacy": {
       title: "隐私政策",
-      intro: "本政策说明 Book2Audio GO 官网、账号服务和 Windows 应用如何处理数据。相关数据由 Book2AudioGo Group 处理。",
+      intro: "本政策说明 Book2Audio GO 官网、账号服务和 Windows 应用如何处理数据。以 Book2Audio GO 品牌运营的独立开发者 GUO XINYU 是本政策所述个人信息的处理者。",
       sections: [
         { title: "书籍、文本与音频", text: "应用在你的设备上解析书籍和保存导出的音频。使用本地语音模型时，合成在你的设备上完成。使用在线语音合成时，转换所需的文本会发送给所选服务商处理。微软在线语音通过 Edge TTS 接收所选文本和语音参数。" },
         { title: "账号与授权", text: "我们处理用户名、邮箱、验证记录、设备激活信息和购买或兑换记录，用于登录、管理 Pro 授权和处理支持请求。验证码和密码重置邮件通过 Resend 发送。" },
@@ -85,7 +85,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
   ja: {
     "/terms": {
       title: "利用規約",
-      intro: "Book2AudioGo Group が提供する Book2Audio GO のウェブサイトと Windows アプリに適用されます。",
+      intro: "Book2Audio GO は、独立開発者 GUO XINYU が Book2Audio GO ブランドで開発・運営しています。本規約は Book2Audio GO のウェブサイトと Windows アプリに適用されます。",
       sections: [
         { title: "ライセンスとコンテンツ", text: "本ソフトウェアは定められた範囲で利用できます。利用する権利のある書籍や文書のみを変換し、原本および生成した音声に適用される権利を守ってください。コピー保護の回避や無断共有はできません。" },
         { title: "無料版と Pro", text: "無料版は章ごとの手動変換に対応します。Pro では一括変換と読書計画を利用できます。Paddle の Pro は、同時に1台で利用できる買い切りライセンスで、自動更新はありません。機種変更時はアカウントで旧端末の登録を解除してから新端末を有効化してください。引き換えコードの有効期間や条件は購入前に商品ページで確認してください。" },
@@ -96,7 +96,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
     },
     "/privacy": {
       title: "プライバシーポリシー",
-      intro: "Book2AudioGo Group は、サイト、アカウントサービス、Windows アプリで以下のデータを取り扱います。",
+      intro: "Book2Audio GO ブランドで運営する独立開発者 GUO XINYU が、ウェブサイト、アカウントサービス、Windows アプリにおける以下の個人データの取り扱いに責任を負います。",
       sections: [
         { title: "書籍、テキスト、音声", text: "書籍の解析と音声の保存は端末で行います。ローカルモデルでは端末内で音声を合成します。オンライン合成では選択したサービスに必要なテキストを送信します。Microsoft のオンライン音声は Edge TTS を通じて選択したテキストと音声設定を受け取ります。" },
         { title: "アカウントとライセンス", text: "ユーザー名、メールアドレス、認証記録、端末の有効化情報、購入や引き換えの記録を、ログイン、Pro の管理、サポートに使用します。認証メールとパスワード再設定メールは Resend が配信します。" },
@@ -120,7 +120,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
   ko: {
     "/terms": {
       title: "이용약관",
-      intro: "Book2AudioGo Group이 제공하는 Book2Audio GO 웹사이트와 Windows 앱에 적용됩니다.",
+      intro: "Book2Audio GO는 독립 개발자 GUO XINYU가 Book2Audio GO 브랜드로 개발하고 운영합니다. 본 약관은 Book2Audio GO 웹사이트와 Windows 앱에 적용됩니다.",
       sections: [
         { title: "소프트웨어 사용권", text: "이 소프트웨어는 정해진 범위에서 사용할 수 있습니다. 사용할 권한이 있는 도서와 문서만 변환하고 원본과 생성된 오디오에 적용되는 권리를 존중해 주세요. 복제 방지를 우회하거나 허가 없이 오디오를 공유하지 마세요." },
         { title: "무료 버전과 Pro", text: "무료 버전은 장별 수동 변환을 지원합니다. Pro는 일괄 변환과 독서 계획을 제공합니다. Paddle Pro는 한 번 결제하여 한 번에 기기 한 대에서 사용할 수 있으며 자동 갱신되지 않습니다. 기기를 바꿀 때는 계정에서 이전 기기를 해제한 뒤 새 기기를 활성화하세요. 교환 코드의 기간과 조건은 구매 전에 상품 설명을 확인하세요." },
@@ -131,7 +131,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
     },
     "/privacy": {
       title: "개인정보 처리방침",
-      intro: "Book2AudioGo Group은 웹사이트, 계정 서비스 및 Windows 앱에서 아래 정보를 처리합니다.",
+      intro: "Book2Audio GO 브랜드로 운영하는 독립 개발자 GUO XINYU는 웹사이트, 계정 서비스 및 Windows 앱에서 아래에 설명된 개인정보 처리의 책임자입니다.",
       sections: [
         { title: "도서, 텍스트 및 오디오", text: "도서 분석과 오디오 저장은 기기에서 이루어집니다. 로컬 모델은 기기에서 음성을 합성합니다. 온라인 합성을 선택하면 변환에 필요한 텍스트가 해당 서비스로 전송됩니다. Microsoft 온라인 음성에는 Edge TTS를 통해 선택한 텍스트와 음성 설정이 전송됩니다." },
         { title: "계정 및 사용권", text: "사용자 이름, 이메일, 인증 기록, 기기 활성화 정보, 구매 및 교환 기록을 로그인, Pro 관리와 지원에 사용합니다. 인증과 비밀번호 재설정 이메일은 Resend가 발송합니다." },
@@ -155,7 +155,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
   fr: {
     "/terms": {
       title: "Conditions d’utilisation",
-      intro: "Ces conditions s’appliquent au site et à l’application Windows Book2Audio GO, fournis par Book2AudioGo Group.",
+      intro: "Book2Audio GO est développé et exploité par GUO XINYU, développeur indépendant, sous la marque Book2Audio GO. Ces conditions s’appliquent au site et à l’application Windows Book2Audio GO.",
       sections: [
         { title: "Licence du logiciel", text: "Vous disposez d’une licence limitée d’utilisation du logiciel. Convertissez uniquement les livres et documents que vous êtes autorisé à utiliser. Respectez les droits applicables à la source et à l’audio produit. Ne contournez pas les protections et ne partagez pas l’audio sans autorisation." },
         { title: "Éditions gratuite et Pro", text: "L’édition gratuite permet la conversion manuelle par chapitre. Pro inclut la conversion par lots et le programme de lecture. L’offre Paddle est un achat unique pour un seul appareil actif, sans renouvellement automatique. Pour changer d’appareil, dissociez l’ancien dans votre compte avant d’activer le nouveau. Vérifiez la durée et les conditions des codes sur l’annonce avant l’achat." },
@@ -166,7 +166,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
     },
     "/privacy": {
       title: "Politique de confidentialité",
-      intro: "Book2AudioGo Group traite les données ci-dessous pour le site, le service de compte et l’application Windows.",
+      intro: "GUO XINYU, développeur indépendant exerçant sous la marque Book2Audio GO, est responsable du traitement des données personnelles décrit ci-dessous pour le site, le service de compte et l’application Windows.",
       sections: [
         { title: "Livres, texte et audio", text: "Les livres sont analysés et l’audio exporté est enregistré sur votre appareil. Un modèle local synthétise la voix sur place. La synthèse en ligne transmet le texte nécessaire au service choisi. Les voix Microsoft en ligne reçoivent le texte sélectionné et les réglages vocaux via Edge TTS." },
         { title: "Comptes et licences", text: "Le nom d’utilisateur, l’adresse e-mail, les données de vérification, les activations et les achats ou échanges servent à gérer les connexions, les licences Pro et l’assistance. Resend achemine les e-mails de vérification et de réinitialisation du mot de passe." },
@@ -190,7 +190,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
   es: {
     "/terms": {
       title: "Términos del servicio",
-      intro: "Estos términos se aplican al sitio web y la aplicación de Windows de Book2Audio GO, ofrecidos por Book2AudioGo Group.",
+      intro: "Book2Audio GO es desarrollado y operado por GUO XINYU, desarrollador independiente, bajo la marca Book2Audio GO. Estos términos se aplican al sitio web y la aplicación de Windows de Book2Audio GO.",
       sections: [
         { title: "Licencia de software", text: "Se concede una licencia limitada para usar el software. Convierte solo libros y documentos que tengas derecho a utilizar. Respeta los derechos del material original y del audio generado. No eludas la protección anticopia ni compartas el audio sin los permisos necesarios." },
         { title: "Versión gratuita y Pro", text: "La versión gratuita permite convertir capítulos manualmente. Pro incluye conversión por lotes y un plan de lectura. La oferta de Paddle es un pago único para un dispositivo activo, sin renovación automática. Para cambiar de equipo, desvincula el anterior en tu cuenta y activa el nuevo. Consulta la duración y las condiciones de cada código en su anuncio antes de comprar." },
@@ -201,7 +201,7 @@ export const policies: Record<Lang, Record<Exclude<StorePath, "/pricing">, Polic
     },
     "/privacy": {
       title: "Política de privacidad",
-      intro: "Book2AudioGo Group trata los datos indicados a continuación para el sitio, el servicio de cuentas y la aplicación de Windows.",
+      intro: "GUO XINYU, desarrollador independiente que opera bajo la marca Book2Audio GO, es responsable del tratamiento de los datos personales descrito a continuación para el sitio, el servicio de cuentas y la aplicación de Windows.",
       sections: [
         { title: "Libros, texto y audio", text: "Los libros se analizan y el audio exportado se guarda en tu dispositivo. Con un modelo local, la voz se genera en el dispositivo. La síntesis en línea envía el texto necesario al servicio elegido. Las voces en línea de Microsoft reciben el texto seleccionado y los ajustes de voz a través de Edge TTS." },
         { title: "Cuentas y licencias", text: "Tratamos el nombre de usuario, el correo electrónico, los datos de verificación, las activaciones de dispositivos y los registros de compra o canje para gestionar el acceso, la licencia Pro y la asistencia. Resend envía los correos de verificación y de restablecimiento de contraseña." },
