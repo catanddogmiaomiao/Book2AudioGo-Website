@@ -93,7 +93,7 @@ try {
 
   const storePages = [
     ["/pricing", "Pricing", "US$9.99"],
-    ["/terms", "Terms of Service", "Book2AudioGo Group"],
+    ["/terms", "Terms of Service", "GUO XINYU"],
     ["/privacy", "Privacy Policy", "https://www.paddle.com/legal/privacy"],
     ["/refunds", "Refund Policy", "https://paddle.net/"],
   ];
