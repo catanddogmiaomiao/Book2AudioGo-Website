@@ -9,7 +9,7 @@ export default function DiscoveryContent({ lang }: { lang: Lang }) {
   ] as const;
   const questions = [
     ["Is Book2Audio GO free?", "The main ebook-to-audio conversion features are free to use. Download the Windows app from this website and start with a short chapter to check the result."],
-    ["Is this an online book to audio converter?", "Book2Audio GO runs as a Windows desktop app, rather than converting books in your browser. Book parsing takes place on your computer; text is sent to an online speech service to generate audio, so an internet connection is required."],
+    ["Is this an online book to audio converter?", "Books are parsed on your computer. Online voices send text to a speech service; installed local voices generate audio on your computer."],
     ["Can I convert PDF and EPUB books to MP3?", "Yes. The app supports EPUB, PDF, TXT and DOCX input, with MP3 and WAV output options. Check the detected chapters and extracted text before exporting. Image-only PDFs need text recognition first."],
     ["Can I listen on my phone?", "After conversion, copy the exported MP3 files to your phone and open them in a compatible audio player. Generating the audiobook requires the Windows app; listening to saved MP3 files does not."],
   ] as const;

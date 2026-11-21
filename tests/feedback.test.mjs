@@ -88,7 +88,7 @@ try {
     assert.equal(response.headers.get("Cache-Control"), "no-store");
     const target = new URL(response.headers.get("Location"));
     assert.equal(target.origin, "https://downloads.book2audiogo.com");
-    assert.match(target.pathname, /\/Book2AudioGo-1\.2\.0-windows-x64-setup\.exe$/);
+    assert.match(target.pathname, /\/Book2AudioGo-2\.0-windows-x64-setup\.exe$/);
   }
   const downloadReport = async (days = 30, users = "") => {
     const response = await worker.dispatchFetch(report + "?days=" + days + users, { headers: { Authorization: auth } });

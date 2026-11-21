@@ -57,7 +57,7 @@ try {
   assert.doesNotMatch(html, /<meta[^>]+content="[^"]*noindex/i);
 
   assert.match(html, /id="update-notice-title"/);
-  assert.match(html, /Version 1\.2\.0 is available/);
+  assert.match(html, /Version 2\.0 is available/);
   assert.ok(html.includes('href="/updates"'));
   const updatesResponse = await worker.dispatchFetch("https://book2audiogo.com/updates");
   assert.equal(updatesResponse.status, 200);
@@ -66,11 +66,22 @@ try {
   assert.equal((updatesHtml.match(/<h1[\s>]/g) ?? []).length, 1);
   assert.ok(updatesHtml.includes("<h1>Release notes</h1>"));
   assert.match(updatesHtml, /rel="canonical" href="https:\/\/book2audiogo.com\/updates"/);
-  for (const text of ["Book2Audio GO 1.2.0", "How to upgrade", "64-bit installer", "about 59 MB", "run the EXE"]) {
+  for (const text of ["Book2Audio GO 2.0", "How to upgrade", "64-bit installer", "about 68 MB", "run the EXE"]) {
     assert.ok(updatesHtml.includes(text), "Release notes missing: " + text);
   }
   for (const htmlPage of [html, updatesHtml]) {
     assert.ok(htmlPage.includes('href="/download/windows"'));
+  }
+  const downloadResponse = await worker.dispatchFetch("https://book2audiogo.com/download/windows", { method: "HEAD", redirect: "manual" });
+  assert.equal(downloadResponse.status, 302);
+  assert.equal(downloadResponse.headers.get("Location"), "https://downloads.book2audiogo.com/releases/2026-11-21/Book2AudioGo-2.0-windows-x64-setup.exe");
+  for (const lang of ["en", "zh", "ja", "ko", "fr", "es"]) {
+    const localizedUpdates = await worker.dispatchFetch(`https://book2audiogo.com/updates?lang=${lang}`);
+    assert.equal(localizedUpdates.status, 200);
+    const localizedHtml = await localizedUpdates.text();
+    for (const text of ["Book2Audio GO 2.0", "Kokoro", "Qwen3-TTS", "1.2.0", "2026-11-21"]) {
+      assert.ok(localizedHtml.includes(text), `Release notes ${lang} missing: ${text}`);
+    }
   }
   const pageTitles = new Set([html.match(/<title>(.*?)<\/title>/)[1]]);
   for (const [path, heading] of [["/pdf-to-audiobook", "Convert PDF to Audio and MP3 Audiobooks"], ["/epub-to-mp3", "Convert EPUB to MP3 Audiobooks by Chapter"]]) {

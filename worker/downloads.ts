@@ -1,10 +1,10 @@
 import { DurableObject } from "cloudflare:workers";
 import { marketingRoute } from "../app/_data/languages";
-import { RELEASE_DATE } from "../app/_data/releases";
+import { RELEASE_DATE, RELEASE_VERSION } from "../app/_data/releases";
 import { hasAdminAccess } from "./admin-auth";
 import { productMetrics, registrationMetrics, registrationUsers } from "./product-metrics";
 
-const VERSION = "1.2.0";
+const VERSION = RELEASE_VERSION;
 const FILE_URL = `https://downloads.book2audiogo.com/releases/${RELEASE_DATE}/Book2AudioGo-${VERSION}-windows-x64-setup.exe`;
 const NO_STORE = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
 const DAY = 86400000;
@@ -207,7 +207,7 @@ export class DownloadStats extends DurableObject<DownloadEnv> {
   }
 
   async record(version: string, country: string, region: string, ip: string) {
-    if (!/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(version)) throw new Error("Invalid release version");
+    if (!/^\d{1,4}\.\d{1,4}(?:\.\d{1,4})?$/.test(version)) throw new Error("Invalid release version");
     const now = Date.now();
     const day = beijingDay(now);
     const sql = this.ctx.storage.sql;
